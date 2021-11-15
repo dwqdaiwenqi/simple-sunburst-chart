@@ -1,0 +1,17 @@
+{
+  "name": "sunburst-demo",
+  "version": "1.0.0",
+  "description": "sunburst chart",
+  "main": "src/index.js",
+  "author": "2540546236@qq.com",
+  "license": "MIT",
+  "devDependencies": {},
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/dwqdaiwenqi/sunburst-demo.git"
+  },
+  "bugs": {
+    "url": "https://github.com/dwqdaiwenqi/sunburst-demo/issues"
+  },
+  "homepage": "https://github.com/dwqdaiwenqi/sunburst-demo#readme"
+}

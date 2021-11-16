@@ -8,7 +8,7 @@ demo 在线地址：https://dwqdaiwenqi.github.io/sunburst-demo/demo/
 ### 运行方式
 1、安装依赖
 ```bash
-npm i sunburst-demo@latest
+npm i sunburst-chart@latest
 ```
 
 2、本地体验
@@ -34,7 +34,7 @@ http-server ./ -p 8888
   });
 
   chart.autoResize();
-  
+
   chart.onElementClick((params) => {
     console.log(params.meta)
   });

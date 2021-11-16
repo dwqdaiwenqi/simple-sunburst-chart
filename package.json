@@ -1,6 +1,6 @@
 {
   "name": "simple-sunburst-chart",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "sunburst chart",
   "main": "src/index.js",
   "author": "2540546236@qq.com",
@@ -8,10 +8,10 @@
   "devDependencies": {},
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/dwqdaiwenqi/sunburst-demo.git"
+    "url": "git+https://github.com/dwqdaiwenqi/simple-sunburst-chart.git"
   },
   "bugs": {
-    "url": "https://github.com/dwqdaiwenqi/sunburst-demo/issues"
+    "url": "https://github.com/dwqdaiwenqi/simple-sunburst-chart/issues"
   },
-  "homepage": "https://github.com/dwqdaiwenqi/sunburst-demo#readme"
+  "homepage": "https://github.com/dwqdaiwenqi/simple-sunburst-chart#readme"
 }

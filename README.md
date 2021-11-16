@@ -1,5 +1,5 @@
 # sunburst-chart
-为了满足产品需求而手写（撕）的一个项目，务必暂时按照 demo 的配置使用
+为了满足产品需求而手撕的一个旭日图，务必暂时按照 demo 的配置使用
 
 demo 在线地址：https://dwqdaiwenqi.github.io/simple-sunburst-chart/demo/   
 

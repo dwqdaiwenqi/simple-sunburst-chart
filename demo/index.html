@@ -31,6 +31,19 @@
           { color: '#5284f5' },
           { color: '#b5cbfd' },
         ],
+        tooltip: (param) => {
+          const wapSty = 'display:flex;align-items:center;'
+          const nameSty = 'margin-right:16px;'
+          const dotSty = `width:10px;height:10px;border-radius:5px;margin-right:7px;margin-top:2px;background:${param.color}`
+          const valSty = 'margin-right:auto;font-weight:bold'
+          return `
+            <div style=${wapSty}>
+              <div style=${dotSty}></div>
+              <div style=${nameSty}>${param.name}</div>
+              <div style=${valSty}>${param.value}</div>
+            </div>
+          `
+        }
       });
   
       chart.autoResize();

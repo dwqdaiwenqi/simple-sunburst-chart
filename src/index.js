@@ -26,6 +26,23 @@ const processData = ({ data, min }) => {
   return make;
 };
 
+const createTooltip = ()=> {
+  const $tooltip = document.createElement('div')
+  $tooltip.style.cssText = `
+    position:absolute;
+    width:auto;
+    height:auto;
+    padding:8px 10px;
+    display:none;
+    pointer-events:none;
+    background-color:white;
+    color:#00000080;
+    box-shadow:1px 1px 10px rgba(0,0,0,.2);
+    border-radius:4px;
+  `
+  return $tooltip
+}
+
 export default function SunburstChart(config) {
   const that = {
     resizeObserver: null,
@@ -35,7 +52,10 @@ export default function SunburstChart(config) {
     render() {
       if (this.stage) {
         this.stage.destroy();
+        this.$tooltip.remove()
       }
+
+      this.$tooltip = config.$el.appendChild(createTooltip())
 
       config.x = this.resizeObserver ? config.$el.offsetWidth * 0.5 : config.x;
       config.y = this.resizeObserver ? config.$el.offsetHeight * 0.5 : config.y;
@@ -90,7 +110,7 @@ export default function SunburstChart(config) {
           ring.strokeStyle = 'white';
           ring.lineWidth = config.gap;
           ring.globalAlpha = 1;
-          ring.userParams = { ...childData };
+          ring.userParams = { ...childData,color:co };
 
           if (i !== 2) {
             const textName = Text({ text: childData.name });
@@ -158,25 +178,34 @@ export default function SunburstChart(config) {
         }
       }
 
-      stage.getShapes().forEach((item) => {
+      stage.getShapes().forEach((item,i) => {
         item.onClick(() => {
           that.handleElementClick(item.userParams);
         });
 
-        item.onMouseover(() => {
+        item.onMouseover((x,y) => {
+          if(config.tooltip){
+            const tooltipVal = config.tooltip(item.userParams,i)
+            this.$tooltip.innerHTML = tooltipVal
+            this.$tooltip.style.left = (x + 12) + 'px'
+            this.$tooltip.style.top = (y + 12) + 'px'
+            this.$tooltip.style.display = 'block'
+          }
+
           stage.getShapes().forEach((n) => {
             n.globalAlpha = n === item ? 1 : 0.3;
           });
         });
 
         item.onMouseout(() => {
+          this.$tooltip.style.display = 'none'
           stage.getShapes().forEach((n) => {
             n.globalAlpha = 1;
           });
         });
       });
-
       stage.onMouseout(() => {
+        this.$tooltip.style.display = 'none'
         stage.getShapes().forEach((n) => {
           n.globalAlpha = 1;
         });

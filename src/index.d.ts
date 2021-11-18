@@ -4,7 +4,6 @@ export declare type ISunburstInstance = {
   onElementClick: (fn: IElementClick) => void
   render: () => void
   autoResize: () => void
-  tooltip:(param:IData & {rad:number}, i:number) => void
 };
 declare function SunburstChart<T extends IData>(config: Partial<{
   data: T[][];
@@ -17,6 +16,7 @@ declare function SunburstChart<T extends IData>(config: Partial<{
   radius: number
   resizeObserver: ResizeObserver
   $el: HTMLDivElement | null
+  tooltip:(param:IData & {rad:number}, i:number) => void
 }>): ISunburstInstance;
 
 export default SunburstChart;

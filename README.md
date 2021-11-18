@@ -19,6 +19,8 @@ http-server ./ -p 8888
 
 ### 使用
 ```html
+<div id="place" style="width:100%;height:500px;"></div>
+
 <script type="module">
   import Sunburst from '../src/index.js'
 

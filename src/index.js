@@ -80,7 +80,11 @@ export default function SunburstChart(config) {
       for (let i = 0, len = processedData.length; i < len; i++) {
         const children = processedData[i];
         const radius = (i / len) * config.radius;
-        const co = config.levels?.[i]?.color;
+
+        const levelConfig =  config.levels?.[i]
+        const font = Object.assign({tx:0,ty:0,font:'13px Regular'},levelConfig.font ??{})
+        const co = levelConfig?.color;
+
         const depthChilds = [];
         for (let j = 0, len = children.length; j < len; j++) {
           const childData = children[j];
@@ -112,23 +116,27 @@ export default function SunburstChart(config) {
           ring.globalAlpha = 1;
           ring.userParams = { ...childData,color:co };
 
-          if (i !== 2) {
+          if (i !== processedData.length-1) {
             const textName = Text({ text: childData.name });
             const { x, y } = ring.getCenterPo();
             ring.add(textName);
-            textName.x = x;
-            textName.y = y;
-            textName.font = '13px Regular';
+            textName.x = x + font.tx
+            textName.y = y + font.ty
+            textName.font = font.font
             const textValue = Text({ text: childData.value });
             ring.add(textValue);
-            textName.font = '13px Regular';
-            textValue.x = x;
-            textValue.y = y + 18;
+            textValue.font = font.font
+            textValue.x = x + font.tx
+            textValue.y = y + 18+ font.ty
 
-            textValue.font = '14px Regular';
+
+            textName.shadowBlur = textValue.shadowBlur = font.shadowBlur
+            textName.shadowOffsetX = textValue.shadowOffsetX = font.shadowOffsetX
+            textName.shadowOffsetY = textValue.shadowOffsetY = font.shadowOffsetY
+            textName.shadowColor = textValue.shadowColor = font.shadowColor
           }
 
-          if (i === 2) {
+          if (i === processedData.length-1) {
             const { x: x1, y: y1, normalize } = ring.getMiddleOfEdge();
 
             const line = Line({
@@ -158,18 +166,26 @@ export default function SunburstChart(config) {
             const labelName = Text({
               text: childData.name,
             });
+            labelName.font = font.font
             labelName.fillStyle = '#6D7278';
-            labelName.x = line2.x2 + dir * 10;
-            labelName.y = line2.y2;
+            labelName.x = line2.x2 + dir * (10 + font.tx)
+            labelName.y = line2.y2 + font.ty
             ring.add(labelName);
 
             const labelValue = Text({
               text: childData.value,
             });
+            labelValue.font = font.font;
             labelValue.fillStyle = '#6D7278';
-            labelValue.x = line2.x2 + dir * 10;
-            labelValue.y = line2.y2 + 14;
+            labelValue.x = line2.x2 + dir * (10 + font.tx)
+            labelValue.y = line2.y2 + 14 + font.ty
             ring.add(labelValue);
+
+            labelName.shadowBlur = labelValue.shadowBlur = font.shadowBlur
+            labelName.shadowOffsetX = labelValue.shadowOffsetX = font.shadowOffsetX
+            labelName.shadowOffsetY = labelValue.shadowOffsetY = font.shadowOffsetY
+            labelName.shadowColor = labelValue.shadowColor = font.shadowColor
+
           }
 
           depthChilds.push(ring);

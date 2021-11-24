@@ -18,7 +18,12 @@ const Shape = () => {
       return this.c.isPointInPath(x, y);
     },
     update(c) {
+      c.save()
       this.drawPath(c);
+      c.fillStyle = this.fillStyle;
+      c.strokeStyle = this.strokeStyle;
+      c.lineWidth = this.lineWidth;
+      c.stroke();
       c.globalAlpha = this.globalAlpha;
       c.fill();
       c.restore();

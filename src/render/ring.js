@@ -55,8 +55,6 @@ const Ring = ({
 
       const [cx, cy] = [this.x, this.y];
 
-      c.save();
-
       c.beginPath();
 
       c.moveTo(cos(sr) * ir + cx, sin(sr) * ir + cy);
@@ -79,11 +77,7 @@ const Ring = ({
       );
       c.closePath();
 
-      c.fillStyle = this.fillStyle;
-      c.strokeStyle = this.strokeStyle;
-      c.lineWidth = this.lineWidth;
-
-      c.stroke();
+     
     },
   });
   return that.init();

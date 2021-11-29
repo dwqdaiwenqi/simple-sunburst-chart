@@ -82,7 +82,7 @@ export default function SunburstChart(config) {
         const radius = (i / len) * config.radius;
 
         const levelConfig =  config.levels?.[i]
-        const font = Object.assign({tx:0,ty:0,font:'13px Regular'},levelConfig.font ??{})
+        const font = Object.assign({tx:0,ty:0,font:'13px Regular',mode:'break-world'},levelConfig.font ??{})
         const co = levelConfig?.color;
 
         const depthChilds = [];
@@ -163,28 +163,51 @@ export default function SunburstChart(config) {
             ring.add(line2);
             line2.strokeStyle = '#6D7278';
 
-            const labelName = Text({
-              text: childData.name,
-            });
-            labelName.font = font.font
-            labelName.fillStyle = '#6D7278';
-            labelName.x = line2.x2 + dir * (10 + font.tx)
-            labelName.y = line2.y2 + font.ty
-            ring.add(labelName);
+            if(font.mode === 'break-world'){
+              const labelName = Text({
+                text: childData.name,
+              });
+              const labelNameWidth = labelName.getWidth()
+              labelName.font = font.font
+              labelName.fillStyle = '#6D7278';
+              labelName.x = line2.x2 + dir*(labelNameWidth+font.tx)
+              labelName.y = line2.y2 + font.ty
+              ring.add(labelName);
 
-            const labelValue = Text({
-              text: childData.value,
-            });
-            labelValue.font = font.font;
-            labelValue.fillStyle = '#6D7278';
-            labelValue.x = line2.x2 + dir * (10 + font.tx)
-            labelValue.y = line2.y2 + 14 + font.ty
-            ring.add(labelValue);
+              const labelValue = Text({
+                text: childData.value,
+              });
+              labelValue.font = font.font;
+              labelValue.fillStyle = '#6D7278';
+              labelValue.x = line2.x2 + dir * (labelNameWidth*.8 + font.tx)
+              labelValue.y = line2.y2 + 14 + font.ty
+              ring.add(labelValue);
 
-            labelName.shadowBlur = labelValue.shadowBlur = font.shadowBlur
-            labelName.shadowOffsetX = labelValue.shadowOffsetX = font.shadowOffsetX
-            labelName.shadowOffsetY = labelValue.shadowOffsetY = font.shadowOffsetY
-            labelName.shadowColor = labelValue.shadowColor = font.shadowColor
+              labelName.shadowBlur = labelValue.shadowBlur = font.shadowBlur
+              labelName.shadowOffsetX = labelValue.shadowOffsetX = font.shadowOffsetX
+              labelName.shadowOffsetY = labelValue.shadowOffsetY = font.shadowOffsetY
+              labelName.shadowColor = labelValue.shadowColor = font.shadowColor
+
+            }else{
+              const labelName = Text({
+                text: childData.name + ` (${childData.value}) `,
+              });
+              const labelNameWidth = labelName.getWidth()
+              labelName.font = font.font
+              labelName.fillStyle = '#6D7278';
+              labelName.x = line2.x2 + dir*(labelNameWidth*.8+font.tx)
+              labelName.y = line2.y2 + font.ty
+              ring.add(labelName);
+
+              labelName.shadowBlur =  font.shadowBlur
+              labelName.shadowOffsetX =  font.shadowOffsetX
+              labelName.shadowOffsetY =  font.shadowOffsetY
+              labelName.shadowColor = font.shadowColor
+            }
+
+
+
+           
 
           }
 

@@ -15,6 +15,10 @@ const Text = ({ text }) => {
       this.text = text;
       return this;
     },
+    getWidth () {
+      let measureCtx = document.createElement('canvas').getContext('2d')
+      return measureCtx.measureText(text).width
+    },
     update(c) {
       c.save();
       c.font = this.font;

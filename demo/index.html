@@ -22,8 +22,9 @@
     // ]
 
     let data = [[
-      {"name":"2021年","value":150072,"meta":{"type":"year","value":1021,"title":"2021年","name":"2021年","format":"YYYY"}}],
-      [{"name":"2021/1","value":37880,"meta":{"type":"season","value":123,"name":"2021/1","format":"YYYY/Q",
+      {"name":"2021年","value":150072,"meta":{"type":"year","value":1021,"title":"2021年","name":"2021年","format":"YYYY"}}
+    ],
+    [{"name":"2021/1","value":37880,"meta":{"type":"season","value":123,"name":"2021/1","format":"YYYY/Q",
       "title":"2021/第1季度"}},
       {"name":"2021/2","value":100006,
       "meta":{"type":"season","value":2,
@@ -50,11 +51,12 @@
       let chart = Sunburst({
         data: [...data],
         $el: document.querySelector('#place'),
-        gap: 10,
+        gap: 5,
         levels: [
           { color: '#536686',font:{ shadowOffsetX:1,shadowOffsetY:1,shadowBlur:2,shadowColor:'rgba(0,0,0,.8)' } },
           { color: '#5284f5',font:{ shadowOffsetX:1,shadowOffsetY:1,shadowBlur:2,shadowColor:'rgba(0,0,0,.8)'  }},
-          { color: '#b5cbfd' ,font:{ tx:20}},
+          { color: '#b5cbfd' ,font:{ tx:0,mode:'normal'}},
+          // { color: '#b5cbfd' ,font:{ tx:0,mode:'normal'}},
         ],
         tooltip: (param) => {
           const wapSty = 'display:flex;align-items:center;'

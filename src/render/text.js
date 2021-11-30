@@ -11,6 +11,7 @@ const Text = ({ text }) => {
     shadowColor:'rgba(0,0,0,0)',
     x: 0,
     y: 0,
+    z: 0,
     init() {
       this.text = text;
       return this;
@@ -18,6 +19,9 @@ const Text = ({ text }) => {
     getWidth () {
       let measureCtx = document.createElement('canvas').getContext('2d')
       return measureCtx.measureText(text).width
+    },
+    getHeight(){
+      return parseInt(this.font.match(/\d+/), 10);
     },
     update(c) {
       c.save();

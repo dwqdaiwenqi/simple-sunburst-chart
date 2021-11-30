@@ -8,6 +8,7 @@ const Line = ({
     name: 'line',
     lineWidth: 1,
     strokeStyle: 'black',
+    z:0,
     init() {
       this.x1 = x1;
       this.x2 = x2;

@@ -41,11 +41,15 @@
         {"name":"2021/04","value":12659,"meta":{"type":"month","value":3,"name":"2021/04",
         "format":"YYYY/MM","title":"2021/04月"}},{"name":"2021/05","value":33075,"meta":{
           "type":"month","value":4,"name":"2021/05","format":"YYYY/MM","title":"2021/05月"}},
-          {"name":"2021/06","value":15552,"meta":{"type":"month","value":5,"name":"2021/06","format":"YYYY/MM","title":"2021/06月"}},{"name":"2021/07","value":20695,"meta":{"type":"month","value":6,"name":"2021/07","format":"YYYY/MM","title":"2021/07月"}},{"name":"2021/08","value":23420,"meta":
-          {"type":"month","value":7,"name":"2021/08","format":"YYYY/MM","title":"2021/08月"}},{"name":"2021/09","value":52,"meta":{"type":"month","value":8,"name":"2021/09","format":"YYYY/MM","title":"2021/09月"}},
-          {"name":"2021/10","value":11368,"meta":
-          {"type":"month","value":9,"name":"2021/10","format":"YYYY/MM","title":"2021/10月"}},
-          {"name":"2021/11","value":1401,"meta":{"type":"month","value":10,"name":"2021/11","format":"YYYY/MM","title":"2021/11月"}}]]
+          {"name":"2021/06","value":15552,"meta":{"type":"month","value":5,"name":"2021/06","format":"YYYY/MM","title":"2021/06月"}},
+          {"name":"2021/07","value":40000,"meta":{"type":"month","value":40000,"name":"2021/07","format":"YYYY/MM","title":"2021/07月"}},
+          {"name":"2021/08","value":100000,"meta":
+          {"type":"month","value":100000,"name":"2021/08","format":"YYYY/MM","title":"2021/08月"}},
+          {"name":"2021/09","value":20000,
+          "meta":{"type":"month","value":20000,"name":"2021/09","format":"YYYY/MM","title":"2021/09月"}},
+          {"name":"2021/10","value":40000,"meta":
+          {"type":"month","value":40000,"name":"2021/10","format":"YYYY/MM","title":"2021/10月"}},
+          {"name":"2021/11","value":50000,"meta":{"type":"month","value":50000,"name":"2021/11","format":"YYYY/MM","title":"2021/11月"}}]]
 
     onload = ()=>{
       let chart = Sunburst({
@@ -55,8 +59,7 @@
         levels: [
           { color: '#536686',font:{ shadowOffsetX:1,shadowOffsetY:1,shadowBlur:2,shadowColor:'rgba(0,0,0,.8)' } },
           { color: '#5284f5',font:{ shadowOffsetX:1,shadowOffsetY:1,shadowBlur:2,shadowColor:'rgba(0,0,0,.8)'  }},
-          { color: '#b5cbfd' ,font:{ tx:0,mode:'normal'}},
-          // { color: '#b5cbfd' ,font:{ tx:0,mode:'normal'}},
+          { color: '#b5cbfd' ,font:{ tx:0}},
         ],
         tooltip: (param) => {
           const wapSty = 'display:flex;align-items:center;'
@@ -76,7 +79,7 @@
       chart.autoResize();
       chart.onElementClick((params) => {
         console.log(params.meta)
-        alert(params.name)
+        // alert(params.name)
       });
     }
 

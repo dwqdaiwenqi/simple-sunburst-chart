@@ -4,7 +4,7 @@
 /* eslint-disable operator-assignment */
 
 import Group from './group.js'
-
+const dpr = window.devicePixelRatio
 const Stage = (w, h, $el) => {
   const that = Group()
   Object.assign(that,{
@@ -14,16 +14,23 @@ const Stage = (w, h, $el) => {
       this.$c = $c;
       this.$el = $el;
       this.c = $c.getContext('2d');
-      $c.width = w;
-      $c.height = h;
+      this.dpr = 1
+      $c.width = w*1;
+      $c.height = h*1;
+      // $c.style.width = w +'px'
+      // $c.style.height = h+'px'
       $el.appendChild($c);
 
       this.registryEvents();
 
       return this;
     },
-    getShapes() {
-      return this.elements.filter((n) => n.shape);
+    getShapes(process) {
+      let result = this.elements.filter((n) => n.shape)
+      if(process){
+        result = result.filter(n=>process(n))
+      }
+      return result
     },
     getClipSpacePo(x, y) {
       const scrollTop =
@@ -47,7 +54,7 @@ const Stage = (w, h, $el) => {
     registryEvents() {
       this.$el.onclick = (event) => {
         const [x, y] = this.getClipSpacePo(event.pageX, event.pageY);
-        const shapes = this.getShapes();
+        const shapes = this.getShapes((n)=>n.visible);
         shapes.forEach((item) => {
           if (item.inPath(x, y)) {
             item?.clickHandle?.(x, y);
@@ -61,8 +68,7 @@ const Stage = (w, h, $el) => {
       let currentMousemoveItem = null;
       this.$el.onmousemove = (event) => {
         const [x, y] = this.getClipSpacePo(event.pageX, event.pageY);
-        const shapes = this.getShapes();
-
+        const shapes = this.getShapes((n)=>n.visible);
         currentMousemoveItem = null;
         shapes.forEach((item) => {
           if (item.inPath(x, y)) {
@@ -117,24 +123,25 @@ const Stage = (w, h, $el) => {
         this.$c.style.cursor = 'auto';
       };
     },
-    tick() {
+    tick(fuc) {
       const callee = () => {
         requestAnimationFrame(callee);
         this.c.clearRect(0, 0, w, h);
-        this.update();
+        fuc && fuc()
       };
       requestAnimationFrame(callee);
     },
     update() {
-      this.elements.forEach((element) => {
-        element.update(this.c);
-
-        if (element.elements) {
-          element.elements.forEach((item) => {
-            item.update(this.c);
-          });
-        }
-      });
+      this.c.save()
+      let elements = this.elements.reduce((preVal,curVal)=>{
+        preVal.push(...curVal.elements,...[curVal])
+        return preVal
+      },[])
+      elements = elements.sort((a,b)=>a.z-b.z)
+      elements.forEach(element=>{
+        element.update(this.c)
+      })
+      this.c.restore()
     },
     destroy() {
       this.$el.onclick = this.$el.onmousemove = this.$el.onmouseout = null;

@@ -50,16 +50,16 @@ export default function SunburstChart(config) {
   const that = {
     resizeObserver: null,
     _rings:[],
-    _constrain(node){
+    _constrain(node,margin=0){
       let [left, right, top, bottom] = [
-        0 , 
-        this.stage.$c.width,
-        0 , 
-        this.stage.$c.height
+        0 +margin, 
+        this.stage.$c.width-margin,
+        0 +margin, 
+        this.stage.$c.height-margin
       ];
       var { x, y} = node;
-      if (x < left) node.x = left;
-      if (x > right) node.x = right;
+      if (x < left) node.x = left
+      if (x > right) node.x = right
       if (y < top) node.y = top;
       if (y > bottom) node.y = bottom;
     },
@@ -72,7 +72,7 @@ export default function SunburstChart(config) {
             let o2 = outerRings[j].boundingCircle
             let centerAxis = new Vec(o2.x - o1.x, o2.y - o1.y);
             let centerAxisLength = centerAxis.clone().length();
-            let minDist = o1.radius + o2.radius;
+            let minDist = (o1.radius + o2.radius)+5
             
             if (centerAxisLength < minDist) {
               let diff = centerAxis.clone().setLength((centerAxisLength - minDist)*.5)
@@ -85,11 +85,19 @@ export default function SunburstChart(config) {
                   o2.parent.findChild({name:'line2'})[0],
                   o2.parent.findChild({name:'boundingCircle'})[0]   
                 ]
-    
-                ;[labelName,labelValue,boundingCircle].forEach(item=>{
-                  item.x += diff.x*-1
-                  item.y += diff.y*-1
-                })
+
+                const labelNameHeight = labelName.getHeight()
+
+
+                labelName.x += diff.x*-1
+                labelName.y += diff.y*-1
+
+                boundingCircle.x += diff.x*-1
+                boundingCircle.y += diff.y*-1
+
+
+                labelValue.x = labelName.x
+                labelValue.y = labelName.y+labelNameHeight*1.1
 
                 line1.x2 += diff.x*-1
                 line1.y2 += diff.y*-1
@@ -99,7 +107,6 @@ export default function SunburstChart(config) {
                 line2.y1 += diff.y*-1
                 line2.x2 += diff.x*-1
                 line2.y2 += diff.y*-1
-
 
               }
 
@@ -111,12 +118,18 @@ export default function SunburstChart(config) {
                   o1.parent.findChild({name:'line2'})[0],
                   o1.parent.findChild({name:'boundingCircle'})[0]   
                 ]
+                const labelNameHeight = labelName.getHeight()
 
-                ;[labelName,labelValue,boundingCircle].forEach(item=>{
-                  item.x += diff.x
-                  item.y += diff.y
-                  this._constrain(item)
-                })
+
+                labelName.x += diff.x
+                labelName.y += diff.y
+
+                boundingCircle.x += diff.x
+                boundingCircle.y += diff.y
+
+
+                labelValue.x = labelName.x
+                labelValue.y = labelName.y+labelNameHeight*1.1
 
                 line1.x2 += diff.x
                 line1.y2 += diff.y
@@ -290,8 +303,10 @@ export default function SunburstChart(config) {
             })
             boundingCircle.name = 'boundingCircle'
             boundingCircle.visible = false
-            // boundingCircle.fillStyle = 'transparent'
-            // boundingCircle.strokeStyle = 'transparent'
+            if(!config.showBounding){
+              boundingCircle.fillStyle = 'transparent'
+              boundingCircle.strokeStyle = 'transparent'
+            }
             ring.add(boundingCircle)
             ring.boundingCircle = boundingCircle
 
@@ -329,7 +344,6 @@ export default function SunburstChart(config) {
 
       this.$tooltip = config.$el.appendChild(createTooltip())
 
-
       config.x = this.resizeObserver ? config.$el.offsetWidth * 0.5 : config.x;
       config.y = this.resizeObserver ? config.$el.offsetHeight * 0.5 : config.y;
       config.gap = config.gap ?? 0;
@@ -337,6 +351,7 @@ export default function SunburstChart(config) {
       config.levels = config.levels ?? [];
       config.labelMode = config.labelMode ?? 'space-between';
       config.radius = this.resizeObserver ? config.$el.offsetHeight * 0.4 : config.radius;
+      config.showBounding = config.showBounding ?? false
 
 
       this._createElements(config)

@@ -18,6 +18,7 @@ const Ring = ({
     globalAlpha: 1,
     x: 0,
     y: 0,
+    z:0,
     init() {
       this.innerRadius = innerRadius;
       this.outerRadius = outerRadius;
@@ -76,8 +77,6 @@ const Ring = ({
         true, // 逆时针绘制
       );
       c.closePath();
-
-     
     },
   });
   return that.init();

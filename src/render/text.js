@@ -11,6 +11,8 @@ const Text = ({ text }) => {
     shadowColor:'rgba(0,0,0,0)',
     x: 0,
     y: 0,
+    z:0,
+    elements:[],
     init() {
       this.text = text;
       return this;

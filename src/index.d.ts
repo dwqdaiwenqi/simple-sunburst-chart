@@ -17,6 +17,7 @@ declare function SunburstChart<T extends IData>(config: Partial<{
   resizeObserver: ResizeObserver
   $el: HTMLDivElement | null
   tooltip:(param:IData & {rad:number,color:string}, i:number) => void
+  processLine:(...any)=>any
 }>): ISunburstInstance;
 
 export default SunburstChart;

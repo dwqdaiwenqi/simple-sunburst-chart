@@ -22,7 +22,7 @@
     // ]
 
     let data = [[
-      {"name":"2021年","value":150072,"meta":{"type":"year","value":1021,"title":"2021年","name":"2021年","format":"YYYY"}}
+      {"name":"2021年","value":1500723443434,"meta":{"type":"year","value":10214343,"title":"2021年","name":"2021年","format":"YYYY"}}
     ],
     [{"name":"2021/1","value":37880,"meta":{"type":"season","value":123,"name":"2021/1","format":"YYYY/Q",
       "title":"2021/第1季度"}},
@@ -55,9 +55,24 @@
         levels: [
           { color: '#536686',font:{ shadowOffsetX:1,shadowOffsetY:1,shadowBlur:2,shadowColor:'rgba(0,0,0,.8)' } },
           { color: '#5284f5',font:{ shadowOffsetX:1,shadowOffsetY:1,shadowBlur:2,shadowColor:'rgba(0,0,0,.8)'  }},
-          { color: '#b5cbfd' ,font:{ tx:0,mode:'normal'}},
-          // { color: '#b5cbfd' ,font:{ tx:0,mode:'normal'}},
+          { color: '#b5cbfd' ,font:{ tx:0,mode:'break-world'}},
         ],
+        processLine:(userParams,axis,rt)=>{
+          if(userParams.name === '2021/11'){
+            const newAxis = rt(axis,1)
+            return{
+              axis:{
+                x:newAxis.x,
+                y:newAxis.y
+              },
+              length:20
+            }
+          }
+          return{
+            axis:{...axis},
+            length:5
+          }
+        },
         tooltip: (param) => {
           const wapSty = 'display:flex;align-items:center;'
           const nameSty = 'margin-right:16px;'
@@ -76,7 +91,7 @@
       chart.autoResize();
       chart.onElementClick((params) => {
         console.log(params.meta)
-        alert(params.name)
+        // alert(params.name)
       });
     }
 

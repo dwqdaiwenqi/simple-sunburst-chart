@@ -5,6 +5,8 @@
 
 import Group from './group.js'
 
+const dpr = 1
+
 const Stage = (w, h, $el) => {
   const that = Group()
   Object.assign(that,{
@@ -14,13 +16,22 @@ const Stage = (w, h, $el) => {
       this.$c = $c;
       this.$el = $el;
       this.c = $c.getContext('2d');
-      $c.width = w;
-      $c.height = h;
+      $c.width = w * dpr;
+      $c.height = h * dpr;
+
+      // $c.style.width = w + 'px'
+      // $c.style.height = h +'px'
       $el.appendChild($c);
 
       this.registryEvents();
 
       return this;
+    },
+    getWidth(){
+      return w
+    },
+    getHeight(){
+      return h
     },
     getShapes() {
       return this.elements.filter((n) => n.shape);
@@ -31,8 +42,8 @@ const Stage = (w, h, $el) => {
       const scrollLeft =
         document.body.scrollLeft || document.documentElement.scrollLeft;
       return [
-        x - this.$el.getBoundingClientRect().left - scrollLeft,
-        y - this.$el.getBoundingClientRect().top - scrollTop,
+        (x - this.$el.getBoundingClientRect().left - scrollLeft),
+        (y - this.$el.getBoundingClientRect().top - scrollTop),
       ];
     },
     onClick(fuc) {
@@ -117,24 +128,26 @@ const Stage = (w, h, $el) => {
         this.$c.style.cursor = 'auto';
       };
     },
-    tick() {
+    tick(fuc) {
       const callee = () => {
         requestAnimationFrame(callee);
         this.c.clearRect(0, 0, w, h);
-        this.update();
+        fuc && fuc()
       };
       requestAnimationFrame(callee);
     },
     update() {
-      this.elements.forEach((element) => {
-        element.update(this.c);
+      this.c.save()
+      let elements = this.elements.reduce((preVal,curVal)=>{
+        preVal.push(...curVal.elements,...[curVal])
+        return preVal
+      },[])
+      elements = elements.sort((a,b)=>a.z-b.z)
 
-        if (element.elements) {
-          element.elements.forEach((item) => {
-            item.update(this.c);
-          });
-        }
-      });
+      elements.forEach(element=>{
+        element.update(this.c)
+      })
+     this.c.restore()
     },
     destroy() {
       this.$el.onclick = this.$el.onmousemove = this.$el.onmouseout = null;

@@ -274,10 +274,8 @@ export default function SunburstChart(config) {
             const labelNameHeight = labelName.getHeight()
             const { x: x1, y: y1, normalize } = ring.getMiddleOfEdge();
 
-
             const boundRadius =  (labelValueWidth+labelNameWidth)*.4
            
-
             const dir = sign(normalize.x);
 
             let d = dir < 0? abs((ring.x-ring.outerRadius*1.2)-x1) : abs((ring.x+ring.outerRadius*1.2)-x1)
@@ -322,9 +320,6 @@ export default function SunburstChart(config) {
 
             ring.add(labelName);
 
-            
-          
-
             labelValue.x = labelName.x
             labelValue.y = labelName.y+labelNameHeight*1.1
             labelValue.z = 1
@@ -340,7 +335,6 @@ export default function SunburstChart(config) {
             }
             ring.add(boundingCircle)
             ring.boundingCircle = boundingCircle
-
 
             boundingCircle.x = labelName.x
             boundingCircle.y = l(labelName.y,labelValue.y,.5)
@@ -374,13 +368,24 @@ export default function SunburstChart(config) {
       config.radius = this.resizeObserver ? config.$el.offsetHeight * 0.4 : config.radius;
       config.showBounding = config.showBounding ?? false
 
-
       this._createElements(config)
 
       const {stage} = this
+
+      let currentClickElement = null
       stage.getShapes().forEach((item,i) => {
         item.onClick(() => {
           that.handleElementClick(item.userParams);
+
+          if(currentClickElement&&currentClickElement===item){
+            currentClickElement = null
+            this._rings.forEach((n) => {
+              n.globalAlpha = 1;
+            });
+          }else{
+            currentClickElement = item
+          }
+
         });
 
         item.onMouseover((x,y) => {
@@ -395,20 +400,46 @@ export default function SunburstChart(config) {
           this._rings.forEach((n) => {
             n.globalAlpha = n === item ? 1 : 0.3;
           });
+
+          if(currentClickElement){
+            currentClickElement.globalAlpha = 1
+          }
         });
 
         item.onMouseout(() => {
           this.$tooltip.style.display = 'none'
-          this._rings.forEach((n) => {
-            n.globalAlpha = 1;
-          });
+
+          if(!currentClickElement){
+            this._rings.forEach((n) => {
+              n.globalAlpha = 1;
+            });
+          }else{
+            this._rings.forEach((n) => {
+              n.globalAlpha = .3;
+            });
+            if(currentClickElement){
+              currentClickElement.globalAlpha = 1
+            }
+          }
+          
         });
       });
       stage.onMouseout(() => {
         this.$tooltip.style.display = 'none'
-        this._rings.forEach((n) => {
-          n.globalAlpha = 1;
-        });
+
+        if(!currentClickElement){
+          this._rings.forEach((n) => {
+            n.globalAlpha = 1;
+          });
+        }else{
+          this._rings.forEach((n) => {
+            n.globalAlpha = .3;
+          });
+          if(currentClickElement){
+            currentClickElement.globalAlpha = 1
+          }
+
+        }
       });
       stage.tick(() => {
         stage.update();

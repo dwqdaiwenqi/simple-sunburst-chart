@@ -1,6 +1,6 @@
 {
   "name": "simple-sunburst-chart",
-  "version": "1.5.0",
+  "version": "1.6.0",
   "description": "sunburst chart",
   "main": "src/index.js",
   "author": "2540546236@qq.com",

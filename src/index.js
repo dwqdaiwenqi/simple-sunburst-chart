@@ -86,27 +86,31 @@ export default function SunburstChart(config) {
                   o2.parent.findChild({name:'boundingCircle'})[0]   
                 ]
 
+                const { normalize } = o2.parent.getMiddleOfEdge();
+
+                const dir = sign(normalize.x);
+
                 const labelNameHeight = labelName.getHeight()
 
+                this._constrain(labelName,boundingCircle.radius)
 
                 labelName.x += diff.x*-1
                 labelName.y += diff.y*-1
-
-                boundingCircle.x += diff.x*-1
-                boundingCircle.y += diff.y*-1
-
-
+                
                 labelValue.x = labelName.x
                 labelValue.y = labelName.y+labelNameHeight*1.1
 
-                line1.x2 += diff.x*-1
-                line1.y2 += diff.y*-1
+                boundingCircle.x = labelName.x
+                boundingCircle.y = labelName.y
+
+                line1.x2 = labelName.x - line1.dir().x*(boundingCircle.radius+10)
+                line1.y2 = labelName.y - line1.dir().y*(boundingCircle.radius+10)
 
 
-                line2.x1 += diff.x*-1
-                line2.y1 += diff.y*-1
-                line2.x2 += diff.x*-1
-                line2.y2 += diff.y*-1
+                line2.x1 = line1.x2
+                line2.y1 = line1.y2
+                line2.x2 = line1.x2 + dir*10
+                line2.y2 = line1.y2
 
               }
 
@@ -120,25 +124,29 @@ export default function SunburstChart(config) {
                 ]
                 const labelNameHeight = labelName.getHeight()
 
+                const { normalize } = o2.parent.getMiddleOfEdge();
+
+                const dir = sign(normalize.x);
 
                 labelName.x += diff.x
                 labelName.y += diff.y
 
-                boundingCircle.x += diff.x
-                boundingCircle.y += diff.y
-
+                this._constrain(labelName,boundingCircle.radius)
 
                 labelValue.x = labelName.x
                 labelValue.y = labelName.y+labelNameHeight*1.1
 
-                line1.x2 += diff.x
-                line1.y2 += diff.y
+                boundingCircle.x = labelName.x
+                boundingCircle.y = labelName.y
 
+                line1.x2 = labelName.x - line1.dir().x*(boundingCircle.radius+10)
+                line1.y2 = labelName.y - line1.dir().y*(boundingCircle.radius+10)
 
-                line2.x1 += diff.x
-                line2.y1 += diff.y
-                line2.x2 += diff.x
-                line2.y2 += diff.y
+                line2.x1 = line1.x2
+                line2.y1 = line1.y2
+                line2.x2 = line1.x2 + dir*10
+                line2.y2 = line1.y2
+
   
               }
            }
@@ -183,20 +191,19 @@ export default function SunburstChart(config) {
         for (let j = 0, len = children.length; j < len; j++) {
           const childData = children[j];
 
-          const radian = childData.rad;
+          const radian = childData.rad
 
           let startRadian;
           let endRadian;
 
           if (j === 0) {
-            startRadian = 0;
+            startRadian = 0 - PI*.5
             endRadian = startRadian + radian;
           } else {
             startRadian = depthChilds[j - 1].endRadian;
             endRadian = startRadian + radian;
           }
 
-         
           const ring = Ring({
             innerRadius: radius,
             outerRadius: radius + stepRadius,
@@ -236,10 +243,9 @@ export default function SunburstChart(config) {
             labelValue.x = x + font.tx
             labelValue.y = y + 18+ font.ty
             labelValue.z = 1
-  
+
           }
 
-         
           if (i === processedData.length-1) {
 
             const labelName = Text({
@@ -248,24 +254,63 @@ export default function SunburstChart(config) {
             labelName.name = 'labelName'
             labelName.z = 1
 
+
+            const labelValue = Text({
+              text: childData.value,
+            });
+            labelValue.name = 'labelValue'
+            labelValue.font = font.font
+            labelValue.fillStyle = '#6D7278';
+            labelValue.shadowBlur =  font.shadowBlur
+            labelValue.shadowOffsetX =  font.shadowOffsetX
+            labelValue.shadowOffsetY =  font.shadowOffsetY
+            labelValue.shadowColor = font.shadowColor
+            ring.add(labelValue);
+
+            const labelValueWidth = labelValue.getWidth()
+
+
             const labelNameWidth = labelName.getWidth()
             const labelNameHeight = labelName.getHeight()
             const { x: x1, y: y1, normalize } = ring.getMiddleOfEdge();
+
+
+            const boundRadius =  (labelValueWidth+labelNameWidth)*.4
+           
 
             const dir = sign(normalize.x);
 
             let d = dir < 0? abs((ring.x-ring.outerRadius*1.2)-x1) : abs((ring.x+ring.outerRadius*1.2)-x1)
             d += 10
-          
+
+            labelName.x = x1 + dir * (d+labelNameWidth)
+            labelName.y = y1
+            
+
             const line = Line({
               x1: x1,
               y1: y1,
-              x2: x1 + normalize.x * 10,
-              y2: y1 + normalize.y * 10,
+              x2: labelName.x,
+              y2: labelName.y,
             });
+            line.x2 = labelName.x - line.dir().x*(boundRadius+10)
+            line.y2 = labelName.y - line.dir().y*(boundRadius+10)
+
             line.name = 'line1'
             line.z = -2
             ring.add(line);
+
+            const line2 = Line({
+              x1: line.x2,
+              y1: line.y2,
+              x2: line.x2+dir*10,
+              y2: line.y2,
+            });
+
+            line2.name = 'line2'
+            line2.z = -2
+            ring.add(line2);
+
 
             labelName.font = font.font
             labelName.fillStyle = '#6D7278';
@@ -277,29 +322,15 @@ export default function SunburstChart(config) {
 
             ring.add(labelName);
 
-            labelName.x = line.x1 + dir * d + dir * (labelNameWidth)
-            labelName.y = y1 + normalize.y * 10 
-    
-            const labelValue = Text({
-              text: childData.value,
-            });
-            labelValue.name = 'labelValue'
-
-            const labelValueWidth = labelValue.getWidth()
-            labelValue.font = font.font
-            labelValue.fillStyle = '#6D7278';
-            labelValue.shadowBlur =  font.shadowBlur
-            labelValue.shadowOffsetX =  font.shadowOffsetX
-            labelValue.shadowOffsetY =  font.shadowOffsetY
-            labelValue.shadowColor = font.shadowColor
-            ring.add(labelValue);
+            
+          
 
             labelValue.x = labelName.x
             labelValue.y = labelName.y+labelNameHeight*1.1
             labelValue.z = 1
 
             const boundingCircle = Circle({
-              radius:(labelValueWidth+labelNameWidth)*.4
+              radius:boundRadius
             })
             boundingCircle.name = 'boundingCircle'
             boundingCircle.visible = false
@@ -310,16 +341,6 @@ export default function SunburstChart(config) {
             ring.add(boundingCircle)
             ring.boundingCircle = boundingCircle
 
-
-            const line2 = Line({
-              x1: line.x2,
-              y1: line.y2,
-              x2: labelName.x - dir*(labelNameWidth),
-              y2: labelName.y,
-            });
-            line2.name = 'line2'
-            line2.z = -2
-            ring.add(line2);
 
             boundingCircle.x = labelName.x
             boundingCircle.y = l(labelName.y,labelValue.y,.5)
@@ -355,7 +376,6 @@ export default function SunburstChart(config) {
 
 
       this._createElements(config)
-
 
       const {stage} = this
       stage.getShapes().forEach((item,i) => {

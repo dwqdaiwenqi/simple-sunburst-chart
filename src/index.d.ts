@@ -5,6 +5,7 @@ export declare type ISunburstInstance = {
   render: () => void
   autoResize: () => void
 };
+export declare type IVec = {x:number,y:number}
 declare function SunburstChart<T extends IData>(config: Partial<{
   data: T[][];
   x: number;
@@ -17,7 +18,11 @@ declare function SunburstChart<T extends IData>(config: Partial<{
   resizeObserver: ResizeObserver
   $el: HTMLDivElement | null
   tooltip:(param:IData & {rad:number,color:string}, i:number) => void
-  processLine:(...any)=>any
+  processLine:(
+    userParams:IData & Record<string,any>,
+    axis: IVec,
+    rt:(vec: IVec,rad:number)=> IVec)
+  =>{axis: IVec,length:number}
 }>): ISunburstInstance;
 
 export default SunburstChart;

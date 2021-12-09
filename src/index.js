@@ -43,6 +43,22 @@ const createTooltip = ()=> {
   return $tooltip
 }
 
+const createChartTitle = ({text,x,y,size,color}={})=>{
+  const $title = document.createElement('div')
+  console.log('{text,x,y,size,color}',{text,x,y,size,color})
+  $title.style.cssText = `
+    position:absolute;
+    bottom:0;
+    left:50%;
+    transform:translate3d(-50%,0,0);
+    margin: 0 0 ${y}px ${x}px;
+    color:${color};
+    font-size:${size}px;
+  `
+  $title.innerHTML = text
+  return $title
+}
+
 export default function SunburstChart(config) {
   const that = {
     resizeObserver: null,
@@ -157,10 +173,17 @@ export default function SunburstChart(config) {
       if (this.stage) {
         this.stage.destroy();
         this.$tooltip.remove()
+        this.$title.remove()
         this._rings = []
       }
 
+      config.title = {
+        ...{text:'',x:0,y:20,size:16,color:'rgba(0,0,0,0.65)'},
+        ...config.title
+      }
+      
       this.$tooltip = config.$el.appendChild(createTooltip())
+      this.$title = config.$el.appendChild(createChartTitle(config.title))
 
       config.x = this.resizeObserver ? config.$el.offsetWidth * 0.5 : config.x;
       config.y = this.resizeObserver ? config.$el.offsetHeight * 0.5 : config.y;

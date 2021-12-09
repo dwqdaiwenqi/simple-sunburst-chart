@@ -57,6 +57,12 @@
           { color: '#5284f5',font:{ shadowOffsetX:1,shadowOffsetY:1,shadowBlur:2,shadowColor:'rgba(0,0,0,.8)'  }},
           { color: '#b5cbfd' ,font:{ tx:0,mode:'break-world'}},
         ],
+        title:{
+          text:'图表title',
+          size:16,
+          x:0,
+          y:20,
+        },
         processLine:(userParams,axis,rt)=>{
           if(userParams.name === '2021/11'){
             const newAxis = rt(axis,1)

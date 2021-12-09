@@ -15,6 +15,7 @@ const Stage = (w, h, $el) => {
       const $c = document.createElement('canvas');
       this.$c = $c;
       this.$el = $el;
+      this.$el.style.position = 'relative'
       this.c = $c.getContext('2d');
       $c.width = w * dpr;
       $c.height = h * dpr;

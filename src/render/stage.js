@@ -130,9 +130,12 @@ const Stage = (w, h, $el) => {
         this.$c.style.cursor = 'auto';
       };
     },
+    clearRect(){
+      this.c.clearRect(0, 0, w, h);
+    },
     tick(fuc) {
       this.itv = window.itv = setInterval(() => {
-        this.c.clearRect(0, 0, w, h);
+        this.c.clearRect(0, 0, this.getWidth(), this.getHeight());
         fuc && fuc()
       }, 1000/60);
     },

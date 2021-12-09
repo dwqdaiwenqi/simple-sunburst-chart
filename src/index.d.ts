@@ -29,6 +29,9 @@ declare function SunburstChart<T extends IData>(config: Partial<{
     axis: IVec,
     rt:(vec: IVec,rad:number)=> IVec)
   =>{axis: IVec,length:number}
+  onElementCancel:(item:T)=>void
+  updateData:(data:T[][])=>void
+  updateTitle:(title:string)=>void
 }>): ISunburstInstance;
 
 export default SunburstChart;

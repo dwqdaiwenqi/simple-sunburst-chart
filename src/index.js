@@ -178,20 +178,87 @@ export default function SunburstChart(config) {
     updateTitle(title){
       this.$title.innerHTML = title
     },
-    updateData(data){
-      this.stage.resize(config.$el.offsetWidth,config.$el.offsetHeight)
+    updatePos(){
 
-      try{
-        if(JSON.stringify(data)===JSON.stringify(this.data)){
-          return
+      this._rings.forEach(o=>{
+        let [labelName,labelValue,line,line2] = [
+          o.findChild({name:'labelName'})[0],
+          o.findChild({name:'labelValue'})[0],
+          o.findChild({name:'line1'})[0],
+          o.findChild({name:'line2'})[0],
+        ]
+
+        o.x = config.x
+        o.y = config.y
+
+
+        const { x, y } = o.getCenterPo();
+
+        if (o.depth !==config.data.length-1) {
+          labelName.x = x
+          labelName.y = y
+
+          labelValue.x = labelName.x
+          labelValue.y = labelName.y + 18
         }
-      }catch(e){
-        console.log('e',e)
-      }
 
-      this.data = data
-      this.clear()
 
+        if (o.depth === config.data.length-1) {
+            const { x: x1, y: y1, normalize } = o.getMiddleOfEdge();
+
+            line.x1 = x1
+            line.y1 = y1
+            line.x2 = x1  + normalize.x * 10 
+            line.y2 = x1  + normalize.y * 10 
+
+            if(config.processLine){
+              const {length,axis} = config.processLine(
+                {...o.userParams},
+                {...normalize},
+                (vec,rad)=>{
+                  const c = Math.cos(rad),
+                    s = Math.sin(rad);
+              
+                  const x = vec.x - 0;
+                  const y = vec.y - 0;
+                  
+                  return {
+                    x:x * c - y * s + 0,
+                    y:x * s + y * c + 0
+                  }
+                }
+              )
+
+              line.x2 = x1 + axis.x *length
+              line.y2 = y1 + axis.y *length
+            }
+
+
+            const dir = sign(normalize.x);
+
+            const targetX =
+            dir > 0
+              ? this.stage.getWidth()-50
+              : 50
+            const diffX = targetX - line.x2;
+
+            line2.x1 = line.x2
+            line2.y1 = line.y2
+
+            line2.x2 = line.x2+ diffX
+            line2.y2 = line.y2
+
+            const labelNameWidth = labelName.getWidth()
+            labelName.x = line2.x2 + dir*(labelNameWidth*.8)
+            labelName.y = line2.y2
+
+            labelValue.x = labelName.x 
+            labelValue.y = labelName.y + 16
+        }
+
+      })
+    },
+    updateData(data){
       config.title = {
         ...{text:'',x:0,y:20,size:16,color:'rgba(0,0,0,0.65)'},
         ...config.title
@@ -209,6 +276,20 @@ export default function SunburstChart(config) {
         axis:normalize,
         length:10
       }}
+
+      this.stage.resize(config.$el.offsetWidth,config.$el.offsetHeight)
+
+      try{
+        if(JSON.stringify(data)===JSON.stringify(this.data)){
+          return
+        }
+      }catch(e){
+        console.log('e:',e)
+      }
+
+      
+      this.data = data
+      this.clear()
 
       const processedData = processData({ data, min: config.min });
       const stepRadius = config.radius / processedData.length;
@@ -254,8 +335,9 @@ export default function SunburstChart(config) {
           ring.lineWidth = config.gap;
           ring.globalAlpha = 1;
           ring.userParams = { ...childData,color:co };
+          ring.depth = i
 
-          if (i !== processedData.length-1) {
+          if (ring.depth !== processedData.length-1) {
             const textName = Text({ text: childData.name });
             const { x, y } = ring.getCenterPo();
             ring.add(textName);
@@ -263,12 +345,14 @@ export default function SunburstChart(config) {
             textName.y = y + font.ty
             textName.font = font.font
             textName.z = 2
+            textName.name = 'labelName'
             const textValue = Text({ text: childData.value });
             ring.add(textValue);
             textValue.font = font.font
             textValue.x = x + font.tx
             textValue.y = y + 18+ font.ty
             textValue.z = 2
+            textValue.name = 'labelValue'
 
 
             textName.shadowBlur = textValue.shadowBlur = font.shadowBlur
@@ -277,7 +361,7 @@ export default function SunburstChart(config) {
             textName.shadowColor = textValue.shadowColor = font.shadowColor
           }
 
-          if (i === processedData.length-1) {
+          if (ring.depth === processedData.length-1) {
 
             const { x: x1, y: y1, normalize } = ring.getMiddleOfEdge();
 
@@ -287,6 +371,7 @@ export default function SunburstChart(config) {
               x2: x1 + normalize.x * 10,
               y2: y1 + normalize.y * 10,
             });
+            line.name = 'line1'
             line.z = 1
             ring.add(line);
             line.strokeStyle = '#6D7278';
@@ -329,60 +414,34 @@ export default function SunburstChart(config) {
             ring.add(line2);
             line2.z = 1
             line2.strokeStyle = '#6D7278';
-
-            if(font.mode === 'break-world'){
-
-              const labelName = Text({ text: childData.name });
-              labelName.font = font.font
-              labelName.fillStyle = '#6D7278';
-              const labelNameWidth = labelName.getWidth()
-              labelName.x = line2.x2 + dir*(labelNameWidth*.8+font.tx)
-              labelName.y = line2.y2 + font.ty
-              ring.add(labelName)
-              labelName.z = 2
-
-              const labelValue = Text({ text: childData.value });
-              ring.add(labelValue);
-              labelValue.fillStyle = '#6D7278';
-              labelValue.x = labelName.x 
-              labelValue.y = labelName.y + 16
-              labelValue.z = 2
-
-              labelName.shadowBlur = labelValue.shadowBlur = font.shadowBlur
-              labelName.shadowOffsetX = labelValue.shadowOffsetX = font.shadowOffsetX
-              labelName.shadowOffsetY = labelValue.shadowOffsetY = font.shadowOffsetY
-              labelName.shadowColor = labelValue.shadowColor = font.shadowColor
+            line2.name = 'line2'
 
 
-            }else{
-              const labelName = Text({
-                text: childData.name + ` (${childData.value}) `,
-              });
-              labelName.z = 2
-              const labelNameWidth = labelName.getWidth()
+            const labelName = Text({ text: childData.name });
+            labelName.font = font.font
+            labelName.fillStyle = '#6D7278';
+            labelName.name = 'labelName'
+            const labelNameWidth = labelName.getWidth()
+            labelName.x = line2.x2 + dir*(labelNameWidth*.8+font.tx)
+            labelName.y = line2.y2 + font.ty
+            ring.add(labelName)
+            labelName.z = 2
 
-              const targetX =
-              dir > 0
-                ? this.stage.getWidth()-labelNameWidth
-                : labelNameWidth
-              const diffX = targetX - line.x2;
+            const labelValue = Text({ text: childData.value });
+            ring.add(labelValue);
+            labelValue.fillStyle = '#6D7278';
+            labelValue.x = labelName.x 
+            labelValue.y = labelName.y + 16
+            labelValue.z = 2
+            labelValue.name = 'labelValue'
 
-              line2.x2 = line.x2+diffX
-              line2.y2 = line.y2
+            labelName.shadowBlur = labelValue.shadowBlur = font.shadowBlur
+            labelName.shadowOffsetX = labelValue.shadowOffsetX = font.shadowOffsetX
+            labelName.shadowOffsetY = labelValue.shadowOffsetY = font.shadowOffsetY
+            labelName.shadowColor = labelValue.shadowColor = font.shadowColor
 
 
-              labelName.font = font.font
-              labelName.fillStyle = '#6D7278';
-              labelName.x = line2.x2 + dir*(labelNameWidth*.8+font.tx)
-              labelName.y = line2.y2 + font.ty
-              ring.add(labelName);
-
-              labelName.shadowBlur =  font.shadowBlur
-              labelName.shadowOffsetX =  font.shadowOffsetX
-              labelName.shadowOffsetY =  font.shadowOffsetY
-              labelName.shadowColor = font.shadowColor
-            }
-
+            
           }
 
           depthChilds.push(ring);
@@ -394,15 +453,18 @@ export default function SunburstChart(config) {
       let currentClickElement = null
       stage.getShapes().forEach((item,i) => {
         item.onClick(() => {
-          that.handleElementClick(item.userParams);
+          
 
           if(currentClickElement&&currentClickElement===item){
             currentClickElement = null
+            this.handleElementCancel&&this.handleElementCancel(item)
             this._rings.forEach((n) => {
               n.globalAlpha = 1;
             });
           }else{
             currentClickElement = item
+
+            that.handleElementClick(item.userParams);
           }
 
         });
@@ -460,7 +522,9 @@ export default function SunburstChart(config) {
         }
       });
     },
-
+    onElementCancel(fn){
+      this.handleElementCancel = fn
+    },
     render(){
 
       if(!this.stage){
@@ -475,6 +539,7 @@ export default function SunburstChart(config) {
         );
         stage.tick(() => {
           stage.update();
+          this.updatePos()
         });
         this.stage = stage;
       }

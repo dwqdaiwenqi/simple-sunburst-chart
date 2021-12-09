@@ -110,6 +110,10 @@
         console.log(params.meta)
         // alert(params.name)
       });
+
+      chart.onElementCancel(item=>{
+        console.log('item',item)
+      })
     }
 
     let i = 0

@@ -277,15 +277,18 @@ export default function SunburstChart(config) {
         length:10
       }}
 
-      this.stage.resize(config.$el.offsetWidth,config.$el.offsetHeight)
+      if(this.stage.getWidth()!==config.$el.offsetWidth){
+        this.stage.resize(config.$el.offsetWidth,config.$el.offsetHeight)
+      }
 
       try{
-        if(JSON.stringify(data)===JSON.stringify(this.data)){
+        if(JSON.stringify(data)===JSON.stringify(this.data)){ 
           return
         }
       }catch(e){
         console.log('e:',e)
       }
+    
 
       
       this.data = data

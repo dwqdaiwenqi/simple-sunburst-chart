@@ -7,7 +7,8 @@
   <title>sunburst demo</title>
 </head>
 <body>
-  <div id="place" style="width:600px;height:500px;"></div>
+  <div id="place" style="width:100%;height:500px;"></div>
+  <button id="btn1">渲染数据</button>
   <script type="module">
     import Sunburst from '../src/index.js'
 
@@ -46,10 +47,20 @@
           {"name":"2021/10","value":11368,"meta":
           {"type":"month","value":9,"name":"2021/10","format":"YYYY/MM","title":"2021/10月"}},
           {"name":"2021/11","value":1401,"meta":{"type":"month","value":10,"name":"2021/11","format":"YYYY/MM","title":"2021/11月"}}]]
+    
 
+
+    let data2 = [[],[],[]]
+    let chart
     onload = ()=>{
-      let chart = Sunburst({
-        data: [...data],
+      render(++i%2===0?data2:data)
+    }
+
+
+    function render(result){
+      console.log('result:',result)
+      chart = Sunburst({
+        data: [...result],
         $el: document.querySelector('#place'),
         gap: 5,
         levels: [
@@ -94,13 +105,18 @@
         }
       });
   
-      chart.autoResize();
+      // chart.autoResize();
       chart.onElementClick((params) => {
         console.log(params.meta)
         // alert(params.name)
       });
     }
 
+    let i = 0
+    document.querySelector('#btn1').onclick  = ()=>{
+      chart.updateData(++i%2===0?data2:data)
+      chart.updateTitle(i%2===0?'111111':'22222')
+    }
   </script>
 </body>
 </html>

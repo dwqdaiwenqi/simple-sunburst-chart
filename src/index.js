@@ -45,7 +45,6 @@ const createTooltip = ()=> {
 
 const createChartTitle = ({text,x,y,size,color}={})=>{
   const $title = document.createElement('div')
-  console.log('{text,x,y,size,color}',{text,x,y,size,color})
   $title.style.cssText = `
     position:absolute;
     bottom:0;
@@ -59,7 +58,9 @@ const createChartTitle = ({text,x,y,size,color}={})=>{
   return $title
 }
 
+
 export default function SunburstChart(config) {
+
   const that = {
     resizeObserver: null,
     onElementClick(fn) {
@@ -169,22 +170,33 @@ export default function SunburstChart(config) {
         }
       });
     },
-    render() {
-      if (this.stage) {
-        this.stage.destroy();
-        this.$tooltip.remove()
-        this.$title.remove()
-        this._rings = []
+    clear(){
+      this.stage.clear()
+      this.stage.resize(config.$el.offsetWidth,config.$el.offsetHeight)
+      this._rings = []
+    },
+    updateTitle(title){
+      this.$title.innerHTML = title
+    },
+    updateData(data){
+      this.stage.resize(config.$el.offsetWidth,config.$el.offsetHeight)
+
+      try{
+        if(JSON.stringify(data)===JSON.stringify(this.data)){
+          return
+        }
+      }catch(e){
+        console.log('e',e)
       }
+
+      this.data = data
+      this.clear()
 
       config.title = {
         ...{text:'',x:0,y:20,size:16,color:'rgba(0,0,0,0.65)'},
         ...config.title
       }
       
-      this.$tooltip = config.$el.appendChild(createTooltip())
-      this.$title = config.$el.appendChild(createChartTitle(config.title))
-
       config.x = this.resizeObserver ? config.$el.offsetWidth * 0.5 : config.x;
       config.y = this.resizeObserver ? config.$el.offsetHeight * 0.5 : config.y;
       config.gap = config.gap ?? 0;
@@ -198,23 +210,13 @@ export default function SunburstChart(config) {
         length:10
       }}
 
-      const processedData = processData({ data: config.data, min: config.min });
-
-      const stage = Stage(
-        config.$el.offsetWidth,
-        config.$el.offsetHeight,
-        config.$el,
-      );
-
-      this.stage = stage;
-
+      const processedData = processData({ data, min: config.min });
       const stepRadius = config.radius / processedData.length;
-
+      
+      let {stage} = this
       for (let i = 0, len = processedData.length; i < len; i++) {
         const children = processedData[i];
         const radius = (i / len) * config.radius;
-
-        // if(i!==0) continue
 
         const levelConfig =  config.levels?.[i]
         const font = Object.assign({tx:0,ty:0,font:'13px Regular',mode:'break-world'},levelConfig.font ??{})
@@ -333,7 +335,7 @@ export default function SunburstChart(config) {
               const labelName = Text({ text: childData.name });
               labelName.font = font.font
               labelName.fillStyle = '#6D7278';
-               const labelNameWidth = labelName.getWidth()
+              const labelNameWidth = labelName.getWidth()
               labelName.x = line2.x2 + dir*(labelNameWidth*.8+font.tx)
               labelName.y = line2.y2 + font.ty
               ring.add(labelName)
@@ -455,19 +457,38 @@ export default function SunburstChart(config) {
           if(currentClickElement){
             currentClickElement.globalAlpha = 1
           }
-
         }
       });
-      stage.tick(() => {
-        stage.update();
-      });
+    },
+
+    render(){
+
+      if(!this.stage){
+
+        this.$tooltip = config.$el.appendChild(createTooltip())
+        this.$title = config.$el.appendChild(createChartTitle(config.title))
+
+        const stage = Stage(
+          config.$el.offsetWidth,
+          config.$el.offsetHeight,
+          config.$el,
+        );
+        stage.tick(() => {
+          stage.update();
+        });
+        this.stage = stage;
+      }
+
+      
     },
     autoResize() {
       this.resizeObserver = new ResizeObserver(debounce(() => {
-        that.render();
+        this.updateData(config.data)
       }));
       this.resizeObserver.observe(config.$el);
     },
   };
+  that.autoResize()
+  that.render()
   return that;
 }

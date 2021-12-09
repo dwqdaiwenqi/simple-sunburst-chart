@@ -17,22 +17,23 @@ const Stage = (w, h, $el) => {
       this.$el = $el;
       this.$el.style.position = 'relative'
       this.c = $c.getContext('2d');
-      $c.width = w * dpr;
-      $c.height = h * dpr;
 
-      // $c.style.width = w + 'px'
-      // $c.style.height = h +'px'
+      this.resize(w,h)
       $el.appendChild($c);
 
       this.registryEvents();
 
       return this;
     },
+    resize(w,h){
+      this.$c.width = w * dpr;
+      this.$c.height = h * dpr;
+    },
     getWidth(){
-      return w
+      return this.$c.width
     },
     getHeight(){
-      return h
+      return this.$c.height
     },
     getShapes() {
       return this.elements.filter((n) => n.shape);
@@ -130,12 +131,10 @@ const Stage = (w, h, $el) => {
       };
     },
     tick(fuc) {
-      const callee = () => {
-        requestAnimationFrame(callee);
+      this.itv = window.itv = setInterval(() => {
         this.c.clearRect(0, 0, w, h);
         fuc && fuc()
-      };
-      requestAnimationFrame(callee);
+      }, 1000/60);
     },
     update() {
       this.c.save()
@@ -150,10 +149,20 @@ const Stage = (w, h, $el) => {
       })
      this.c.restore()
     },
+    clear(){
+      this.elements.forEach((n) => {
+        n.elements = [];
+      });
+      this.elements = [];
+    },
     destroy() {
+      clearInterval(this.itv)
+
       this.$el.onclick = this.$el.onmousemove = this.$el.onmouseout = null;
 
-      this.$c.parentNode.removeChild(this.$c);
+      if(this.$c.parentNode){
+        this.$c.parentNode.removeChild(this.$c);
+      }
       this.elements.forEach((n) => {
         n.elements = [];
       });

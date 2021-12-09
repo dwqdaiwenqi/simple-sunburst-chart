@@ -18,6 +18,12 @@ declare function SunburstChart<T extends IData>(config: Partial<{
   resizeObserver: ResizeObserver
   $el: HTMLDivElement | null
   tooltip:(param:IData & {rad:number,color:string}, i:number) => void
+  title:Partial<{
+    text:string
+    size:number
+    x:number
+    y:number
+  }>,
   processLine:(
     userParams:IData & Record<string,any>,
     axis: IVec,

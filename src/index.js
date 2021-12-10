@@ -238,7 +238,7 @@ export default function SunburstChart(config) {
             const labelNameWidth = labelName.getWidth()
             const labelValueWidth = labelValue.getWidth()
 
-            const lableOffset = (labelNameWidth+labelValueWidth)*.9
+            const lableOffset = (labelNameWidth+labelValueWidth)*1.2
 
             const targetX =
             dir > 0
@@ -253,7 +253,7 @@ export default function SunburstChart(config) {
             line2.y2 = line.y2
 
             // const labelNameWidth = labelName.getWidth()
-            labelName.x = line2.x2 + dir*(labelNameWidth*.8)
+            labelName.x = line2.x2 + dir*(labelNameWidth*1)
             labelName.y = line2.y2
 
             labelValue.x = labelName.x 

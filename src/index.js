@@ -70,7 +70,7 @@ export default function SunburstChart(config) {
     _constrain(node,margin=0){
       let [left, right, top, bottom] = [
         0 +margin, 
-        this.stage.getWidth()-margin,
+        this.stage.getViewportWidth()-margin,
         0 +margin, 
         this.stage.$c.height-margin
       ];
@@ -235,11 +235,15 @@ export default function SunburstChart(config) {
 
 
             const dir = sign(normalize.x);
+            const labelNameWidth = labelName.getWidth()
+            const labelValueWidth = labelValue.getWidth()
+
+            const lableOffset = (labelNameWidth+labelValueWidth)*.9
 
             const targetX =
             dir > 0
-              ? this.stage.getWidth()-50
-              : 50
+              ? this.stage.getViewportWidth()-lableOffset
+              : lableOffset
             const diffX = targetX - line.x2;
 
             line2.x1 = line.x2
@@ -248,7 +252,7 @@ export default function SunburstChart(config) {
             line2.x2 = line.x2+ diffX
             line2.y2 = line.y2
 
-            const labelNameWidth = labelName.getWidth()
+            // const labelNameWidth = labelName.getWidth()
             labelName.x = line2.x2 + dir*(labelNameWidth*.8)
             labelName.y = line2.y2
 
@@ -405,7 +409,7 @@ export default function SunburstChart(config) {
 
             const targetX =
             dir > 0
-              ? this.stage.getWidth()-50
+              ? this.stage.getViewportWidth()-100
               : 50
             const diffX = targetX - line.x2;
             const line2 = Line({

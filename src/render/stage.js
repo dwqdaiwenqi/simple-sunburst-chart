@@ -5,7 +5,7 @@
 
 import Group from './group.js'
 
-const dpr = 1
+const dpr = window.devicePixelRatio || 1
 
 const Stage = (w, h, $el) => {
   const that = Group()
@@ -26,8 +26,16 @@ const Stage = (w, h, $el) => {
       return this;
     },
     resize(w,h){
+      this.$c.style.width = w +'px'
+      this.$c.style.height = h +'px'
       this.$c.width = w * dpr;
       this.$c.height = h * dpr;
+    },
+    getViewportWidth(){
+      return this.getWidth()/dpr
+    },
+    getViewportHeight(){
+      return this.getHeight()/dpr
     },
     getWidth(){
       return this.$c.width
@@ -141,6 +149,7 @@ const Stage = (w, h, $el) => {
     },
     update() {
       this.c.save()
+      this.c.scale(dpr,dpr)
       let elements = this.elements.reduce((preVal,curVal)=>{
         preVal.push(...curVal.elements,...[curVal])
         return preVal

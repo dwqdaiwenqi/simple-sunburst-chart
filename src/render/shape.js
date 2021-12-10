@@ -4,6 +4,7 @@ const Shape = () => {
   const that = Group()
   Object.assign(that,{
     shape: true,
+    visible:true,
     onClick(fuc) {
       this.clickHandle = fuc;
     },

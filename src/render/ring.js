@@ -44,6 +44,12 @@ const Ring = ({
           x: cos(radian),
           y: sin(radian),
         },
+        tangent:{
+          // x:-sin(radian),
+          // y:cos(radian)
+          x:-sin(radian),
+          y:cos(radian)
+        }
       };
     },
     drawPath(c) {
@@ -77,6 +83,8 @@ const Ring = ({
         true, // 逆时针绘制
       );
       c.closePath();
+
+      // c.arc(200,200,100,0,Math.PI*2)
     },
   });
   return that.init();

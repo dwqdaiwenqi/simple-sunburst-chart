@@ -8,7 +8,8 @@ import {
 } from './common/index.js'
 
 import {Stage,Text,Ring,Line,Circle} from './render/index.js'
-
+import Vec from './common/vector.js'
+import intersectionPoint from './common/intersectionPoint.js'
 const processData = ({ data, min }) => {
   const make = data.map((arr) => {
     const sumVal = arr.reduce(
@@ -43,6 +44,7 @@ const createTooltip = ()=> {
   return $tooltip
 }
 
+
 const createChartTitle = ({text,x,y,size,color}={})=>{
   const $title = document.createElement('div')
   $title.style.cssText = `
@@ -58,6 +60,14 @@ const createChartTitle = ({text,x,y,size,color}={})=>{
   return $title
 }
 
+
+const Depth = {
+  bounding:0,
+  line:1,
+  overlap:2,
+  ring:3,
+  text:4
+}
 
 export default function SunburstChart(config) {
 
@@ -81,94 +91,88 @@ export default function SunburstChart(config) {
       if (y > bottom) node.y = bottom;
     },
     _handleCollision(){
+
       const outerRings = this._rings.filter(n=>n.depth===config.data.length-1)
 
       outerRings.forEach((o1, i) => {
         o1 = o1.boundingCircle
         for (let j = i + 1, len = outerRings.length; j < len; j++) {
-            let o2 = outerRings[j].boundingCircle
-            let centerAxis = new Vec(o2.x - o1.x, o2.y - o1.y);
-            let centerAxisLength = centerAxis.clone().length();
-            let minDist = (o1.radius + o2.radius)+5
-            
-            if (centerAxisLength < minDist) {
-              let diff = centerAxis.clone().setLength((centerAxisLength - minDist)*.5)
+          let o2 = outerRings[j].boundingCircle
+          let centerAxis = new Vec(o2.x - o1.x, o2.y - o1.y);
+          let centerAxisLength = centerAxis.clone().length();
+          let minDist = (o1.radius + o2.radius) + 15
+          
+          if (centerAxisLength<minDist) {
+           
+            {
 
-              {
-                let [labelName,labelValue,line1,line2,boundingCircle] = [
-                  o2.parent.findChild({name:'labelName'})[0],
-                  o2.parent.findChild({name:'labelValue'})[0],
-                  o2.parent.findChild({name:'line1'})[0],
-                  o2.parent.findChild({name:'line2'})[0],
-                  o2.parent.findChild({name:'boundingCircle'})[0]   
-                ]
+              let diff = centerAxis.clone().setLength((centerAxisLength - minDist)*1)
 
-                const { normalize } = o2.parent.getMiddleOfEdge();
+              let [labelName,labelValue,line1,line2,boundingCircle] = [
+                o1.parent.findChild({name:'labelName'})[0],
+                o1.parent.findChild({name:'labelValue'})[0],
+                o1.parent.findChild({name:'line1'})[0],
+                o1.parent.findChild({name:'line2'})[0],
+                o1.parent.findChild({name:'boundingCircle'})[0]   
+              ]
 
-                const dir = sign(normalize.x);
+              const { normalize } = o2.parent.getMiddleOfEdge();
 
-                const labelNameHeight = labelName.getHeight()
+              const dir = sign(normalize.x);
 
-                this._constrain(labelName,boundingCircle.radius)
+              boundingCircle.x += diff.x*1
+              boundingCircle.y += diff.y*1
 
-                labelName.x += diff.x*-1
-                labelName.y += diff.y*-1
-                
-                labelValue.x = labelName.x
-                labelValue.y = labelName.y+labelNameHeight*1.1
+              // // console.log('boundingCircle.x',boundingCircle.x,boundingCircle.y)
 
-                boundingCircle.x = labelName.x
-                boundingCircle.y = labelName.y
+              this._constrain(boundingCircle,boundingCircle.radius)
 
-                line1.x2 = labelName.x - line1.dir().x*(boundingCircle.radius+10)
-                line1.y2 = labelName.y - line1.dir().y*(boundingCircle.radius+10)
+              labelName.x = boundingCircle.x
+              labelName.y = boundingCircle.y-5
+
+              labelValue.x = labelName.x 
+              labelValue.y = labelName.y + 16
+              
+              
+              line2.x1 = line2.x1
+              line2.y1 = boundingCircle.y
+              line2.x2 = boundingCircle.x - dir*boundingCircle.radius
+              line2.y2 = boundingCircle.y
 
 
-                line2.x1 = line1.x2
-                line2.y1 = line1.y2
-                line2.x2 = line1.x2 + dir*10
-                line2.y2 = line1.y2
+              line1.x1 = line1.x1
+              line1.y1 = line1.y1
+              line1.x2 = line1.x2
+              line1.y2 = line1.y2
 
-              }
+              // /line2 line1 intersection
 
-              {
-                let [labelName,labelValue,line1,line2,boundingCircle] = [
-                  o1.parent.findChild({name:'labelName'})[0],
-                  o1.parent.findChild({name:'labelValue'})[0],
-                  o1.parent.findChild({name:'line1'})[0],
-                  o1.parent.findChild({name:'line2'})[0],
-                  o1.parent.findChild({name:'boundingCircle'})[0]   
-                ]
-                const labelNameHeight = labelName.getHeight()
+              let interactive = intersectionPoint([
+                line1,line2
+              ])
 
-                const { normalize } = o2.parent.getMiddleOfEdge();
+              if(interactive.intersectionExist){
+                let fac = Math.asin(line1.dir.clone().cross(new Vec(1,0)))/PI*180
 
-                const dir = sign(normalize.x);
-
-                labelName.x += diff.x
-                labelName.y += diff.y
-
-                this._constrain(labelName,boundingCircle.radius)
-
-                labelValue.x = labelName.x
-                labelValue.y = labelName.y+labelNameHeight*1.1
-
-                boundingCircle.x = labelName.x
-                boundingCircle.y = labelName.y
-
-                line1.x2 = labelName.x - line1.dir().x*(boundingCircle.radius+10)
-                line1.y2 = labelName.y - line1.dir().y*(boundingCircle.radius+10)
-
-                line2.x1 = line1.x2
-                line2.y1 = line1.y2
-                line2.x2 = line1.x2 + dir*10
-                line2.y2 = line1.y2
-
+                if(abs(fac) < 5){
+                  line1.x2 = line2.x1
+                  line1.y2 = line2.y1
+                }else{
+                  line1.x2 = interactive.x
+                  line1.y2 = interactive.y
   
+                  line2.x1 = interactive.x
+                  line2.y1 = interactive.y
+                }
               }
-           }
+
+            }
+
+          }
         }
       });
+
+
     },
     clear(){
       this.stage.clear()
@@ -178,91 +182,7 @@ export default function SunburstChart(config) {
     updateTitle(title){
       this.$title.innerHTML = title
     },
-    updatePos(){
-
-      this._rings.forEach(o=>{
-        let [labelName,labelValue,line,line2] = [
-          o.findChild({name:'labelName'})[0],
-          o.findChild({name:'labelValue'})[0],
-          o.findChild({name:'line1'})[0],
-          o.findChild({name:'line2'})[0],
-        ]
-
-        o.x = config.x
-        o.y = config.y
-
-
-        const { x, y } = o.getCenterPo();
-
-        if (o.depth !==config.data.length-1) {
-          labelName.x = x
-          labelName.y = y
-
-          labelValue.x = labelName.x
-          labelValue.y = labelName.y + 18
-        }
-
-
-        if (o.depth === config.data.length-1) {
-            const { x: x1, y: y1, normalize } = o.getMiddleOfEdge();
-
-            line.x1 = x1
-            line.y1 = y1
-            line.x2 = x1  + normalize.x * 10 
-            line.y2 = x1  + normalize.y * 10 
-
-            if(config.processLine){
-              const {length,axis} = config.processLine(
-                {...o.userParams},
-                {...normalize},
-                (vec,rad)=>{
-                  const c = Math.cos(rad),
-                    s = Math.sin(rad);
-              
-                  const x = vec.x - 0;
-                  const y = vec.y - 0;
-                  
-                  return {
-                    x:x * c - y * s + 0,
-                    y:x * s + y * c + 0
-                  }
-                }
-              )
-
-              line.x2 = x1 + axis.x *length
-              line.y2 = y1 + axis.y *length
-            }
-
-
-            const dir = sign(normalize.x);
-            const labelNameWidth = labelName.getWidth()
-            const labelValueWidth = labelValue.getWidth()
-
-            const lableOffset = (labelNameWidth+labelValueWidth)*.9
-
-            const targetX =
-            dir > 0
-              ? this.stage.getViewportWidth()-lableOffset
-              : lableOffset
-            const diffX = targetX - line.x2;
-
-            line2.x1 = line.x2
-            line2.y1 = line.y2
-
-            line2.x2 = line.x2+ diffX
-            line2.y2 = line.y2
-
-            // const labelNameWidth = labelName.getWidth()
-            labelName.x = line2.x2 + dir*(labelNameWidth*.8)
-            labelName.y = line2.y2
-
-            labelValue.x = labelName.x 
-            labelValue.y = labelName.y + 16
-        }
-
-      })
-    },
-    updateData(data){
+    _resetElement(){
       config.title = {
         ...{text:'',x:0,y:20,size:16,color:'rgba(0,0,0,0.65)'},
         ...config.title
@@ -281,27 +201,29 @@ export default function SunburstChart(config) {
         length:10
       }}
 
-      if(this.stage.getViewportWidth()!==config.$el.offsetWidth){
-        this.stage.resize(config.$el.offsetWidth,config.$el.offsetHeight)
-      }
-
-      try{
-        if(JSON.stringify(data)===JSON.stringify(this.data)){ 
-          return
-        }
-      }catch(e){
-        console.log('e:',e)
-      }
-    
-
-      
+      this._createElement(this.data)
+    },
+    _createElement(data){
       this.data = data
       this.clear()
+
+
+      let {stage} = this
+
+      let overlapCircle = Circle({radius:config.radius})
+      stage.add(overlapCircle)
+      overlapCircle.fillStyle = 'white'
+      overlapCircle.visible = false
+      overlapCircle.x = config.x
+      overlapCircle.y = config.y
+      overlapCircle.z = Depth.overlap
+      overlapCircle.name = 'overlapCircle'
+      overlapCircle.globalAlpha = 1
 
       const processedData = processData({ data, min: config.min });
       const stepRadius = config.radius / processedData.length;
       
-      let {stage} = this
+      
       for (let i = 0, len = processedData.length; i < len; i++) {
         const children = processedData[i];
         const radius = (i / len) * config.radius;
@@ -343,6 +265,7 @@ export default function SunburstChart(config) {
           ring.globalAlpha = 1;
           ring.userParams = { ...childData,color:co };
           ring.depth = i
+          ring.z = Depth.ring
 
           if (ring.depth !== processedData.length-1) {
             const textName = Text({ text: childData.name });
@@ -351,14 +274,14 @@ export default function SunburstChart(config) {
             textName.x = x + font.tx
             textName.y = y + font.ty
             textName.font = font.font
-            textName.z = 2
+            textName.z = Depth.text
             textName.name = 'labelName'
             const textValue = Text({ text: childData.value });
             ring.add(textValue);
             textValue.font = font.font
             textValue.x = x + font.tx
             textValue.y = y + 18+ font.ty
-            textValue.z = 2
+            textValue.z = Depth.text
             textValue.name = 'labelValue'
 
 
@@ -370,58 +293,37 @@ export default function SunburstChart(config) {
 
           if (ring.depth === processedData.length-1) {
 
-            const { x: x1, y: y1, normalize } = ring.getMiddleOfEdge();
+            const { x: x1, y: y1, normalize, tangent } = ring.getMiddleOfEdge();
 
             const line = Line({
               x1,
               y1,
-              x2: x1 + normalize.x * 10,
-              y2: y1 + normalize.y * 10,
-            });
+              x2:x1+normalize.x*20,
+              y2:y1+normalize.y*20
+            })
+            ring.add(line)
             line.name = 'line1'
-            line.z = 1
-            ring.add(line);
-            line.strokeStyle = '#6D7278';
+            line.strokeStyle = '#e8e6e6';
+            line.z = Depth.line
 
-            if(config.processLine){
-              const {length,axis} = config.processLine(
-                {...ring.userParams},
-                {...normalize},
-                (vec,rad)=>{
-                  const c = Math.cos(rad),
-                    s = Math.sin(rad);
-              
-                  const x = vec.x - 0;
-                  const y = vec.y - 0;
-                  
-                  return {
-                    x:x * c - y * s + 0,
-                    y:x * s + y * c + 0
-                  }
-                }
-              )
-
-              line.x2 = x1 + axis.x *length
-              line.y2 = y1 + axis.y *length
-            }
-
+            
             const dir = sign(normalize.x);
 
             const targetX =
             dir > 0
-              ? this.stage.getViewportWidth()-100
+              ? this.stage.getViewportWidth()-50
               : 50
             const diffX = targetX - line.x2;
             const line2 = Line({
-              x1: line.x2,
-              y1: line.y2,
-              x2: line.x2 + diffX,
-              y2: line.y2,
-            });
-            ring.add(line2);
-            line2.z = 1
-            line2.strokeStyle = '#6D7278';
+              x1:line.x2,
+              y1:line.y2,
+              x2:line.x2 + diffX,
+              y2:line.y2
+            })
+            ring.add(line2)
             line2.name = 'line2'
+            line2.strokeStyle = '#e8e6e6';
+            line2.z = Depth.line
 
 
             const labelName = Text({ text: childData.name });
@@ -432,23 +334,38 @@ export default function SunburstChart(config) {
             labelName.x = line2.x2 + dir*(labelNameWidth*.8+font.tx)
             labelName.y = line2.y2 + font.ty
             ring.add(labelName)
-            labelName.z = 2
+            labelName.z = Depth.text
 
             const labelValue = Text({ text: childData.value });
             ring.add(labelValue);
             labelValue.fillStyle = '#6D7278';
             labelValue.x = labelName.x 
             labelValue.y = labelName.y + 16
-            labelValue.z = 2
+            labelValue.z = Depth.text
             labelValue.name = 'labelValue'
 
+            const labelValueWidth = labelValue.getWidth()
             labelName.shadowBlur = labelValue.shadowBlur = font.shadowBlur
             labelName.shadowOffsetX = labelValue.shadowOffsetX = font.shadowOffsetX
             labelName.shadowOffsetY = labelValue.shadowOffsetY = font.shadowOffsetY
             labelName.shadowColor = labelValue.shadowColor = font.shadowColor
 
 
+            const boundRadius =  (labelValueWidth+labelNameWidth)*.4
             
+            const boundingCircle = Circle({
+              radius:boundRadius
+            })
+            boundingCircle.name = 'boundingCircle'
+            boundingCircle.attrName = 'boundingCircle-'+childData.name
+            boundingCircle.fillStyle = 'transparent'
+            boundingCircle.strokeStyle = 'transparent'
+            ring.add(boundingCircle)
+            ring.boundingCircle = boundingCircle
+
+            boundingCircle.x = labelName.x
+            boundingCircle.y = labelName.y+5
+            boundingCircle.z = Depth.bounding
           }
 
           depthChilds.push(ring);
@@ -529,6 +446,105 @@ export default function SunburstChart(config) {
         }
       });
     },
+    updatePos(){
+
+      this._rings.forEach(o=>{
+        let [labelName,labelValue,line,line2,boundingCircle] = [
+          o.findChild({name:'labelName'})[0],
+          o.findChild({name:'labelValue'})[0],
+          o.findChild({name:'line1'})[0],
+          o.findChild({name:'line2'})[0],
+          o.findChild({name:'boundingCircle'})[0],
+        ]
+
+        o.x = config.x
+        o.y = config.y
+
+        if (o.depth !==config.data.length-1) {
+          const { x, y } = o.getCenterPo();
+          labelName.x = x
+          labelName.y = y
+
+          labelValue.x = labelName.x
+          labelValue.y = labelName.y + 18
+        }
+
+        if (o.depth === config.data.length-1) {
+
+          const { x: x1, y: y1, normalize, tangent } = o.getMiddleOfEdge();
+
+          line.x1 = x1
+          line.y1 = y1
+          line.x2 = x1  + tangent.x * 10 
+          line.y2 = y1  + tangent.y * 10 
+
+          const labelNameWidth = labelName.getWidth()
+          const labelValueWidth = labelValue.getWidth()
+
+          const lableOffset = (labelNameWidth+labelValueWidth)*.9
+
+          const dir = sign(normalize.x);
+
+          const targetX =
+          dir > 0
+            ? this.stage.getViewportWidth()-lableOffset
+            : lableOffset
+          const diffX = targetX - line.x2
+          line2.x1 = line.x2
+          line2.y1 = line.y2
+          line2.x2 = line.x2 + diffX
+          line2.y2 = line.y2
+
+
+          labelName.x = line2.x2 + dir*(labelNameWidth*.8)
+          labelName.y = line2.y2 
+
+          labelValue.x = labelName.x 
+          labelValue.y = labelName.y + 16
+
+          boundingCircle.x = labelName.x
+          boundingCircle.y = l(labelName.y,labelValue.y,.5)
+        }
+
+      })
+
+    },
+    updateData(data){
+
+      config.title = {
+        ...{text:'',x:0,y:20,size:16,color:'rgba(0,0,0,0.65)'},
+        ...config.title
+      }
+      
+      config.x = this.resizeObserver ? config.$el.offsetWidth * 0.5 : config.x;
+      config.y = this.resizeObserver ? config.$el.offsetHeight * 0.5 : config.y;
+      config.gap = config.gap ?? 0;
+      config.min = config.min ?? 0.01;
+      config.levels = config.levels ?? [];
+      config.labelMode = config.labelMode ?? 'space-between';
+      config.radius = this.resizeObserver ? config.$el.offsetHeight * 0.3 : config.radius;
+      config.processLineDist = config.processLineDist || function(){ return 10}
+      config.processLine = config.processLine || function(userParams,normalize){ return {
+        axis:normalize,
+        length:10
+      }}
+
+      if(this.stage.getViewportWidth()!==config.$el.offsetWidth){
+        this.stage.resize(config.$el.offsetWidth,config.$el.offsetHeight)
+      }
+
+      try{
+        if(JSON.stringify(data)===JSON.stringify(this.data)){ 
+          return
+        }
+      }catch(e){
+        console.log('e:',e)
+      }
+    
+
+      this._createElement(data)
+
+    },
     onElementCancel(fn){
       this.handleElementCancel = fn
     },
@@ -546,21 +562,26 @@ export default function SunburstChart(config) {
         );
         stage.tick(() => {
           stage.update();
-          this.updatePos()
+          this._handleCollision()
         });
         this.stage = stage;
+
+        onclick = ()=>{
+          // this._handleCollision()
+        }
       }
 
       
     },
     autoResize() {
       this.resizeObserver = new ResizeObserver(debounce(() => {
-        this.updateData(config.data)
+        this._resetElement()
       }));
       this.resizeObserver.observe(config.$el);
     },
   };
   that.autoResize()
   that.render()
+  that.updateData(config.data)
   return that;
 }

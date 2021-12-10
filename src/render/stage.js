@@ -26,16 +26,19 @@ const Stage = (w, h, $el) => {
       return this;
     },
     resize(w,h){
+      this.viewportWidth = w
+      this.viewportHeight = h
+
       this.$c.style.width = w +'px'
       this.$c.style.height = h +'px'
       this.$c.width = w * dpr;
       this.$c.height = h * dpr;
     },
     getViewportWidth(){
-      return this.getWidth()/dpr
+      return this.viewportWidth
     },
     getViewportHeight(){
-      return this.getHeight()/dpr
+      return this.viewportHeight
     },
     getWidth(){
       return this.$c.width

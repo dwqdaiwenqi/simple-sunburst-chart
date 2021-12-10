@@ -281,7 +281,7 @@ export default function SunburstChart(config) {
         length:10
       }}
 
-      if(this.stage.getWidth()!==config.$el.offsetWidth){
+      if(this.stage.getViewportWidth()!==config.$el.offsetWidth){
         this.stage.resize(config.$el.offsetWidth,config.$el.offsetHeight)
       }
 

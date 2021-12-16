@@ -7,7 +7,7 @@
   <title>sunburst demo</title>
 </head>
 <body>
-  <div id="place" style="width:100%;height:500px;"></div>
+  <div id="place" style="width:500px;height:500px;"></div>
   <button id="btn1">渲染数据</button>
   <script type="module">
     import Sunburst from '../src/index.js'
@@ -77,16 +77,16 @@
           y:20,
         },
         processLine:(userParams,axis,rt)=>{
-          if(userParams.name === '2021/11'){
-            const newAxis = rt(axis,1)
-            return{
-              axis:{
-                x:newAxis.x,
-                y:newAxis.y
-              },
-              length:20
-            }
-          }
+          // if(userParams.name === '2021/11'){
+          //   const newAxis = rt(axis,1)
+          //   return{
+          //     axis:{
+          //       x:newAxis.x,
+          //       y:newAxis.y
+          //     },
+          //     length:10
+          //   }
+          // }
           return{
             axis:{...axis},
             length:5

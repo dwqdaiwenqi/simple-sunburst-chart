@@ -309,10 +309,9 @@ export default function SunburstChart(config) {
 
       if(this.stage.getViewportWidth()!==config.$el.offsetWidth){
         this.stage.resize(config.$el.offsetWidth,config.$el.offsetHeight)
+        this.updatePos()
       }
 
-
-      this.updatePos()
 
       try{
         if(JSON.stringify(data)===JSON.stringify(this.data)){ 
@@ -321,7 +320,9 @@ export default function SunburstChart(config) {
       }catch(e){
         console.log('e:',e)
       }
-    
+      
+
+      this.updatePos()
       
       this.data = data
       this.clear()

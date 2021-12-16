@@ -1,4 +1,4 @@
-const [sin, cos, sign, abs,PI] = ['sin', 'cos', 'sign', 'abs','PI'].map(
+const [sin, cos, sign, asin,abs,PI] = ['sin', 'cos', 'sign', 'asin','abs','PI'].map(
   (n) => Math[n],
 );
 
@@ -15,13 +15,13 @@ const debounce = (fn, t = 233) => {
 };
 
 export {
-  sin, cos, sign, abs,PI,
+  sin, cos, sign, abs,PI,asin,
   l,
   debounce
 }
 
 export default {
-  sin, cos, sign, abs,PI,
+  sin, cos, sign, asin,abs,PI,
   l,
   debounce
 }

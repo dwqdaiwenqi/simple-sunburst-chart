@@ -1,5 +1,5 @@
 import Group from './group.js'
-
+import Vector from '../common/vector.js'
 const Line = ({
   x1, y1, x2, y2,
 }) => {
@@ -14,6 +14,13 @@ const Line = ({
       this.x2 = x2;
       this.y1 = y1;
       this.y2 = y2;
+      Object.defineProperties(this,{
+        dir:{
+          get(){
+            return new Vector(this.x2-this.x1,this.y2-this.y1).normalize()
+          }
+        }
+      })
       return this;
     },
     update(c) {

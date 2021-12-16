@@ -46,8 +46,12 @@ const Stage = (w, h, $el) => {
     getHeight(){
       return this.$c.height
     },
-    getShapes() {
-      return this.elements.filter((n) => n.shape);
+    getShapes(process) {
+      let result = this.elements.filter((n) => n.shape)
+      if(process){
+        result = result.filter(n=>process(n))
+      }
+      return result
     },
     getClipSpacePo(x, y) {
       const scrollTop =
@@ -71,7 +75,7 @@ const Stage = (w, h, $el) => {
     registryEvents() {
       this.$el.onclick = (event) => {
         const [x, y] = this.getClipSpacePo(event.pageX, event.pageY);
-        const shapes = this.getShapes();
+        const shapes = this.getShapes((n)=>n.visible);
         shapes.forEach((item) => {
           if (item.inPath(x, y)) {
             item?.clickHandle?.(x, y);
@@ -85,7 +89,7 @@ const Stage = (w, h, $el) => {
       let currentMousemoveItem = null;
       this.$el.onmousemove = (event) => {
         const [x, y] = this.getClipSpacePo(event.pageX, event.pageY);
-        const shapes = this.getShapes();
+        const shapes = this.getShapes((n)=>n.visible);
 
         currentMousemoveItem = null;
         shapes.forEach((item) => {

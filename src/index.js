@@ -4,10 +4,14 @@
 /* eslint-disable operator-assignment */
 
 import { 
-  sign,abs,PI,l,debounce
+  sign,abs,asin,PI,l,debounce
 } from './common/index.js'
 
 import {Stage,Text,Ring,Line,Circle} from './render/index.js'
+
+import Vec from './common/vector.js'
+
+import intersectionPoint from './common/intersectionPoint.js'
 
 const processData = ({ data, min }) => {
   const make = data.map((arr) => {
@@ -15,13 +19,23 @@ const processData = ({ data, min }) => {
       (previousValue, currentValue) => previousValue + currentValue.value,
       0,
     );
-    return [...arr].map((item) => {
-      const fac = Math.max(min, item.value / sumVal);
+
+    const innerArr = [...arr].map((item) => {
+      const fac =  item.value / sumVal
       return {
         ...item,
         rad: l(0, PI * 2, fac),
       };
     });
+
+    const min = [...innerArr].sort((a,b)=>a.rad-b.rad)?.[0]
+    const max = [...innerArr].sort((a,b)=>b.rad-a.rad)?.[0]
+
+    if(min?.rad < .05){
+      min.rad = .05
+      max.rad -= .05
+    }
+    return innerArr
   });
   return make;
 };
@@ -58,9 +72,21 @@ const createChartTitle = ({text,x,y,size,color}={})=>{
   return $title
 }
 
+const Depth = {
+  bounding:0,
+  line:1,
+  overlap:2,
+  ring:3,
+  text:4
+}
+
+
 
 export default function SunburstChart(config) {
-
+  // onclick = ()=>{
+  //   // that.updatePos()
+  //   that._handleCollision()
+  // }
   const that = {
     resizeObserver: null,
     onElementClick(fn) {
@@ -72,7 +98,7 @@ export default function SunburstChart(config) {
         0 +margin, 
         this.stage.getViewportWidth()-margin,
         0 +margin, 
-        this.stage.$c.height-margin
+        this.stage.getViewportHeight()-margin
       ];
       var { x, y} = node;
       if (x < left) node.x = left
@@ -85,90 +111,96 @@ export default function SunburstChart(config) {
 
       outerRings.forEach((o1, i) => {
         o1 = o1.boundingCircle
+        
         for (let j = i + 1, len = outerRings.length; j < len; j++) {
-            let o2 = outerRings[j].boundingCircle
-            let centerAxis = new Vec(o2.x - o1.x, o2.y - o1.y);
-            let centerAxisLength = centerAxis.clone().length();
-            let minDist = (o1.radius + o2.radius)+5
-            
-            if (centerAxisLength < minDist) {
-              let diff = centerAxis.clone().setLength((centerAxisLength - minDist)*.5)
+          let o2 = outerRings[j].boundingCircle
+          let centerAxis = new Vec(o2.x - o1.x, o2.y - o1.y);
+          let centerAxisLength = centerAxis.clone().length();
+          let minDist = (o1.radius + o2.radius)
 
-              {
-                let [labelName,labelValue,line1,line2,boundingCircle] = [
-                  o2.parent.findChild({name:'labelName'})[0],
-                  o2.parent.findChild({name:'labelValue'})[0],
-                  o2.parent.findChild({name:'line1'})[0],
-                  o2.parent.findChild({name:'line2'})[0],
-                  o2.parent.findChild({name:'boundingCircle'})[0]   
-                ]
+          if (centerAxisLength < minDist) {
+            let diff = centerAxis.clone().setLength((centerAxisLength - minDist)*.6)
+            {
+              let [boundingCircle] = [
+                o2.parent.findChild({name:'boundingCircle'})[0]   
+              ]
+              boundingCircle.x += diff.x*-1
+              boundingCircle.y += diff.y*-1
+            }
 
-                const { normalize } = o2.parent.getMiddleOfEdge();
-
-                const dir = sign(normalize.x);
-
-                const labelNameHeight = labelName.getHeight()
-
-                this._constrain(labelName,boundingCircle.radius)
-
-                labelName.x += diff.x*-1
-                labelName.y += diff.y*-1
-                
-                labelValue.x = labelName.x
-                labelValue.y = labelName.y+labelNameHeight*1.1
-
-                boundingCircle.x = labelName.x
-                boundingCircle.y = labelName.y
-
-                line1.x2 = labelName.x - line1.dir().x*(boundingCircle.radius+10)
-                line1.y2 = labelName.y - line1.dir().y*(boundingCircle.radius+10)
-
-
-                line2.x1 = line1.x2
-                line2.y1 = line1.y2
-                line2.x2 = line1.x2 + dir*10
-                line2.y2 = line1.y2
-
-              }
-
-              {
-                let [labelName,labelValue,line1,line2,boundingCircle] = [
-                  o1.parent.findChild({name:'labelName'})[0],
-                  o1.parent.findChild({name:'labelValue'})[0],
-                  o1.parent.findChild({name:'line1'})[0],
-                  o1.parent.findChild({name:'line2'})[0],
-                  o1.parent.findChild({name:'boundingCircle'})[0]   
-                ]
-                const labelNameHeight = labelName.getHeight()
-
-                const { normalize } = o2.parent.getMiddleOfEdge();
-
-                const dir = sign(normalize.x);
-
-                labelName.x += diff.x
-                labelName.y += diff.y
-
-                this._constrain(labelName,boundingCircle.radius)
-
-                labelValue.x = labelName.x
-                labelValue.y = labelName.y+labelNameHeight*1.1
-
-                boundingCircle.x = labelName.x
-                boundingCircle.y = labelName.y
-
-                line1.x2 = labelName.x - line1.dir().x*(boundingCircle.radius+10)
-                line1.y2 = labelName.y - line1.dir().y*(boundingCircle.radius+10)
-
-                line2.x1 = line1.x2
-                line2.y1 = line1.y2
-                line2.x2 = line1.x2 + dir*10
-                line2.y2 = line1.y2
-
-  
-              }
-           }
+            {
+              let [boundingCircle] = [
+                o1.parent.findChild({name:'boundingCircle'})[0]   
+              ]
+              boundingCircle.x += diff.x*1
+              boundingCircle.y += diff.y*1
+            }
+          }
+           
         }
+
       });
+
+      outerRings.forEach(o2=>{
+        o2 = o2.boundingCircle
+        this._constrain(o2,o2.radius)
+      })
+
+      outerRings.forEach((o2)=>{
+        o2 = o2.boundingCircle
+        let [labelName,labelValue,line,line2,boundingCircle] = [
+          o2.parent.findChild({name:'labelName'})[0],
+          o2.parent.findChild({name:'labelValue'})[0],
+          o2.parent.findChild({name:'line1'})[0],
+          o2.parent.findChild({name:'line2'})[0],
+          o2.parent.findChild({name:'boundingCircle'})[0]   
+        ]
+
+
+        labelName.x = boundingCircle.x
+        labelName.y = boundingCircle.y-6
+
+
+        labelValue.x = labelName.x
+        labelValue.y = labelName.y + 18
+
+        
+        const { x: x1, y: y1, normalize }= o2.parent.getMiddleOfEdge();
+
+        const dir = sign(normalize.x);
+
+        line.x1 = x1
+        line.y1 = y1
+        line.x2 = x1  + normalize.x * 10 
+        line.y2 = y1  + normalize.y * 10 
+
+
+        line2.x1 = line.x1
+        line2.y1 = boundingCircle.y
+        line2.x2 = boundingCircle.x - dir*boundingCircle.radius
+        line2.y2 = boundingCircle.y
+
+        let interactive = intersectionPoint([
+          line,line2
+        ])
+
+        if(interactive.intersectionExist){
+          if(interactive.intersectionExist){
+
+            if( asin(line.dir.clone().cross(new Vec(1,0))) < .087){
+              line.x2 = line2.x1
+              line.y2 = line2.y1
+            }else{
+              line.x2 = interactive.x
+              line.y2 = interactive.y
+
+              line2.x1 = interactive.x
+              line2.y1 = interactive.y
+            }
+          }
+        }
+      })
+     
     },
     clear(){
       this.stage.clear()
@@ -180,12 +212,18 @@ export default function SunburstChart(config) {
     },
     updatePos(){
 
+      if(this.overlapCircle){
+        this.overlapCircle.x = config.x
+        this.overlapCircle.y = config.y
+      }
+
       this._rings.forEach(o=>{
-        let [labelName,labelValue,line,line2] = [
+        let [labelName,labelValue,line,line2,boundingCircle] = [
           o.findChild({name:'labelName'})[0],
           o.findChild({name:'labelValue'})[0],
           o.findChild({name:'line1'})[0],
           o.findChild({name:'line2'})[0],
+          o.findChild({name:'boundingCircle'})[0]
         ]
 
         o.x = config.x
@@ -209,30 +247,7 @@ export default function SunburstChart(config) {
             line.x1 = x1
             line.y1 = y1
             line.x2 = x1  + normalize.x * 10 
-            line.y2 = x1  + normalize.y * 10 
-
-            if(config.processLine){
-              const {length,axis} = config.processLine(
-                {...o.userParams},
-                {...normalize},
-                (vec,rad)=>{
-                  const c = Math.cos(rad),
-                    s = Math.sin(rad);
-              
-                  const x = vec.x - 0;
-                  const y = vec.y - 0;
-                  
-                  return {
-                    x:x * c - y * s + 0,
-                    y:x * s + y * c + 0
-                  }
-                }
-              )
-
-              line.x2 = x1 + axis.x *length
-              line.y2 = y1 + axis.y *length
-            }
-
+            line.y2 = y1  + normalize.y * 10 
 
             const dir = sign(normalize.x);
             const labelNameWidth = labelName.getWidth()
@@ -258,14 +273,25 @@ export default function SunburstChart(config) {
 
             labelValue.x = labelName.x 
             labelValue.y = labelName.y + 16
+
+
+            boundingCircle.x = labelName.x
+            boundingCircle.y = labelName.y+5
+
         }
 
       })
+
     },
     updateData(data){
       config.title = {
         ...{text:'',x:0,y:20,size:16,color:'rgba(0,0,0,0.65)'},
-        ...config.title
+        ...config.title,
+      }
+
+      config.line = {
+        ...config.line,
+        color:'#e8e8e8'
       }
       
       config.x = this.resizeObserver ? config.$el.offsetWidth * 0.5 : config.x;
@@ -285,6 +311,9 @@ export default function SunburstChart(config) {
         this.stage.resize(config.$el.offsetWidth,config.$el.offsetHeight)
       }
 
+
+      this.updatePos()
+
       try{
         if(JSON.stringify(data)===JSON.stringify(this.data)){ 
           return
@@ -293,15 +322,29 @@ export default function SunburstChart(config) {
         console.log('e:',e)
       }
     
-
       
       this.data = data
       this.clear()
 
-      const processedData = processData({ data, min: config.min });
+      let {stage} = this
+
+      let overlapCircle = Circle({radius:config.radius})
+      stage.add(overlapCircle)
+      this.overlapCircle = overlapCircle
+      overlapCircle.fillStyle = 'white'
+      overlapCircle.visible = false
+      overlapCircle.x = config.x
+      overlapCircle.y = config.y
+      overlapCircle.z = Depth.overlap
+      overlapCircle.name = 'overlapCircle'
+      overlapCircle.globalAlpha = 1
+
+      const processedData = processData({ data, min: 0 });
+
+
+      
       const stepRadius = config.radius / processedData.length;
       
-      let {stage} = this
       for (let i = 0, len = processedData.length; i < len; i++) {
         const children = processedData[i];
         const radius = (i / len) * config.radius;
@@ -312,10 +355,10 @@ export default function SunburstChart(config) {
 
         const depthChilds = [];
         for (let j = 0, len = children.length; j < len; j++) {
-
+          
           const childData = children[j];
 
-          const radian = childData.rad;
+          const radian = Math.max(childData.rad,0.01)
 
           let startRadian;
           let endRadian;
@@ -325,7 +368,7 @@ export default function SunburstChart(config) {
             endRadian = startRadian + radian;
           } else {
             startRadian = depthChilds[j - 1].endRadian;
-            endRadian = startRadian + radian;
+            endRadian =startRadian + radian
           }
 
           const ring = Ring({
@@ -337,12 +380,21 @@ export default function SunburstChart(config) {
           this._rings.push(ring)
           ring.x = config.x;
           ring.y = config.y;
+          ring.z = Depth.ring
           ring.fillStyle = co;
           ring.strokeStyle = 'white';
-          ring.lineWidth = config.gap;
+          ring.lineWidth = 3;
           ring.globalAlpha = 1;
           ring.userParams = { ...childData,color:co };
           ring.depth = i
+
+          ring.getLines = (fn)=>{
+
+            let line1 = ring.findChild({name:'line1'})[0]
+            let line2 = ring.findChild({name:'line2'})[0]
+            if(line1) fn(line1)
+            if(line2) fn(line2)
+          }
 
           if (ring.depth !== processedData.length-1) {
             const textName = Text({ text: childData.name });
@@ -351,14 +403,14 @@ export default function SunburstChart(config) {
             textName.x = x + font.tx
             textName.y = y + font.ty
             textName.font = font.font
-            textName.z = 2
+            textName.z = Depth.text
             textName.name = 'labelName'
             const textValue = Text({ text: childData.value });
             ring.add(textValue);
             textValue.font = font.font
             textValue.x = x + font.tx
             textValue.y = y + 18+ font.ty
-            textValue.z = 2
+            textValue.z = Depth.text
             textValue.name = 'labelValue'
 
 
@@ -379,31 +431,10 @@ export default function SunburstChart(config) {
               y2: y1 + normalize.y * 10,
             });
             line.name = 'line1'
-            line.z = 1
+            line.z = Depth.line
             ring.add(line);
-            line.strokeStyle = '#6D7278';
+            line.strokeStyle = config.line.color
 
-            if(config.processLine){
-              const {length,axis} = config.processLine(
-                {...ring.userParams},
-                {...normalize},
-                (vec,rad)=>{
-                  const c = Math.cos(rad),
-                    s = Math.sin(rad);
-              
-                  const x = vec.x - 0;
-                  const y = vec.y - 0;
-                  
-                  return {
-                    x:x * c - y * s + 0,
-                    y:x * s + y * c + 0
-                  }
-                }
-              )
-
-              line.x2 = x1 + axis.x *length
-              line.y2 = y1 + axis.y *length
-            }
 
             const dir = sign(normalize.x);
 
@@ -419,8 +450,8 @@ export default function SunburstChart(config) {
               y2: line.y2,
             });
             ring.add(line2);
-            line2.z = 1
-            line2.strokeStyle = '#6D7278';
+            line2.z = Depth.line
+            line2.strokeStyle = config.line.color
             line2.name = 'line2'
 
 
@@ -432,14 +463,14 @@ export default function SunburstChart(config) {
             labelName.x = line2.x2 + dir*(labelNameWidth*.8+font.tx)
             labelName.y = line2.y2 + font.ty
             ring.add(labelName)
-            labelName.z = 2
+            labelName.z = Depth.text
 
             const labelValue = Text({ text: childData.value });
             ring.add(labelValue);
             labelValue.fillStyle = '#6D7278';
             labelValue.x = labelName.x 
             labelValue.y = labelName.y + 16
-            labelValue.z = 2
+            labelValue.z = Depth.text
             labelValue.name = 'labelValue'
 
             labelName.shadowBlur = labelValue.shadowBlur = font.shadowBlur
@@ -448,7 +479,24 @@ export default function SunburstChart(config) {
             labelName.shadowColor = labelValue.shadowColor = font.shadowColor
 
 
+            const labelValueWidth = labelValue.getWidth()
+            const boundRadius =  (labelValueWidth+labelNameWidth)*.66
             
+            const boundingCircle = Circle({
+              radius:boundRadius
+            })
+            boundingCircle.name = 'boundingCircle'
+            boundingCircle.attrName = 'boundingCircle-'+childData.name
+            boundingCircle.fillStyle = 'transparent'
+            // boundingCircle.strokeStyle = 'aqua'
+            ring.add(boundingCircle)
+            ring.boundingCircle = boundingCircle
+
+            boundingCircle.x = labelName.x
+            boundingCircle.y = labelName.y+5
+            boundingCircle.z = Depth.bounding
+
+
           }
 
           depthChilds.push(ring);
@@ -460,8 +508,6 @@ export default function SunburstChart(config) {
       let currentClickElement = null
       stage.getShapes().forEach((item,i) => {
         item.onClick(() => {
-          
-
           if(currentClickElement&&currentClickElement===item){
             currentClickElement = null
             this.handleElementCancel&&this.handleElementCancel(item)
@@ -489,6 +535,11 @@ export default function SunburstChart(config) {
             n.globalAlpha = n === item ? 1 : 0.3;
           });
 
+
+          // item?.getLines?.(line=>{
+          //   line.strokeStyle = 'gray'
+          // })
+
           if(currentClickElement){
             currentClickElement.globalAlpha = 1
           }
@@ -509,12 +560,17 @@ export default function SunburstChart(config) {
               currentClickElement.globalAlpha = 1
             }
           }
+
+          // item?.getLines?.(line=>{
+          //   line.strokeStyle =  config.line.color
+          // })
           
         });
       });
       stage.onMouseout(() => {
         this.$tooltip.style.display = 'none'
 
+       
         if(!currentClickElement){
           this._rings.forEach((n) => {
             n.globalAlpha = 1;
@@ -527,6 +583,13 @@ export default function SunburstChart(config) {
             currentClickElement.globalAlpha = 1
           }
         }
+
+        this._rings.forEach(item=>{
+          // item?.getLines?.(line=>{
+          //   line.strokeStyle =  config.line.color
+          // })
+
+        })
       });
     },
     onElementCancel(fn){
@@ -546,8 +609,10 @@ export default function SunburstChart(config) {
         );
         stage.tick(() => {
           stage.update();
-          this.updatePos()
+          this._handleCollision()
         });
+
+       
         this.stage = stage;
       }
 

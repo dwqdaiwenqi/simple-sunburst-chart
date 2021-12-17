@@ -21,6 +21,9 @@ const Text = ({ text }) => {
       let measureCtx = document.createElement('canvas').getContext('2d')
       return measureCtx.measureText(text).width
     },
+    getHeight(){
+      return parseInt(this.font.match(/\d+/), 10);
+    },
     update(c) {
       c.save();
       c.font = this.font;

@@ -119,7 +119,7 @@ export default function SunburstChart(config) {
           let minDist = (o1.radius + o2.radius)
 
           if (centerAxisLength < minDist) {
-            let diff = centerAxis.clone().setLength((centerAxisLength - minDist)*.6)
+            let diff = centerAxis.clone().setLength((centerAxisLength - minDist)*.5)
             {
               let [boundingCircle] = [
                 o2.parent.findChild({name:'boundingCircle'})[0]   
@@ -461,6 +461,7 @@ export default function SunburstChart(config) {
             labelName.fillStyle = '#6D7278';
             labelName.name = 'labelName'
             const labelNameWidth = labelName.getWidth()
+            const labelNameHeight = labelName.getHeight()
             labelName.x = line2.x2 + dir*(labelNameWidth*.8+font.tx)
             labelName.y = line2.y2 + font.ty
             ring.add(labelName)
@@ -481,10 +482,11 @@ export default function SunburstChart(config) {
 
 
             const labelValueWidth = labelValue.getWidth()
-            const boundRadius =  (labelValueWidth+labelNameWidth)*.66
+            const labeValueHeight = labelValue.getHeight()
+            const boundRadius = new Vec(labelNameHeight+labeValueHeight,Math.max(labelNameWidth,labelValueWidth)).length()
             
             const boundingCircle = Circle({
-              radius:boundRadius
+              radius:boundRadius*.7
             })
             boundingCircle.name = 'boundingCircle'
             boundingCircle.attrName = 'boundingCircle-'+childData.name

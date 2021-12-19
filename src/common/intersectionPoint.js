@@ -39,7 +39,8 @@ const intersectionPoint = (e) => {
   let Dy = DyMat.a * DyMat.d - DyMat.c * DyMat.b;
   let intersect = {
     x: 0,
-    y: 0
+    y: 0,
+    intersectionExist:null
   };
   let msg = ''
   if (D === 0) {
@@ -49,18 +50,26 @@ const intersectionPoint = (e) => {
 
     if (t1 < 0 || t2 < 0) {
       msg = 'no intersection point'
+      intersect = {
+        t1,
+        t2,
+        x: e[0].x1 + e[0].dir.x * t1,
+        y: e[0].y1 + e[0].dir.y * t1,
+        intersectionExist:false
+      };
     }
 
     if (t1 > 0 && t2 > 0) {
-      msg = 'intersection！'
+      msg = 'intersection!'
+      intersect = {
+        t1,
+        t2,
+        x: e[0].x1 + e[0].dir.x * t1,
+        y: e[0].y1 + e[0].dir.y * t1,
+        intersectionExist:true
+      };
     }
-    intersect = {
-      t1,
-      t2,
-      x: e[0].x1 + e[0].dir.x * t1,
-      y: e[0].y1 + e[0].dir.y * t1,
-      intersectionExist:true
-    };
+    
   }
 
   return {

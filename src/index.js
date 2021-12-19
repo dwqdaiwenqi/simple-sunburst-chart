@@ -14,7 +14,7 @@ import Vec from './common/vector.js'
 import intersectionPoint from './common/intersectionPoint.js'
 
 const processData = ({ data, min }) => {
-  const make = data.map((arr) => {
+  const make = data.map((arr,i) => {
     const sumVal = arr.reduce(
       (previousValue, currentValue) => previousValue + currentValue.value,
       0,
@@ -28,13 +28,18 @@ const processData = ({ data, min }) => {
       };
     });
 
-    const min = [...innerArr].sort((a,b)=>a.rad-b.rad)?.[0]
-    const max = [...innerArr].sort((a,b)=>b.rad-a.rad)?.[0]
+    const maxItem = [...innerArr].sort((a,b)=>b.rad-a.rad)?.[0]
 
-    if(min?.rad < .05){
-      min.rad = .05
-      max.rad -= .05
-    }
+    let diff = innerArr.reduce((preVal,curItem)=>{
+      if(curItem.rad < .05){
+        preVal += (.05 - curItem.rad)
+        curItem.rad = .05
+      }
+      return preVal
+    },0)
+
+    maxItem.rad -= diff
+
     return innerArr
   });
   return make;
@@ -75,11 +80,11 @@ const createChartTitle = ({text,x,y,size,color}={})=>{
 const Depth = {
   bounding:0,
   line:1,
+  // line:10,
   overlap:2,
   ring:3,
   text:4
 }
-
 
 
 export default function SunburstChart(config) {
@@ -148,12 +153,13 @@ export default function SunburstChart(config) {
 
       outerRings.forEach((o2)=>{
         o2 = o2.boundingCircle
-        let [labelName,labelValue,line,line2,boundingCircle] = [
+        let [labelName,labelValue,line,line2,boundingCircle,tangentLine] = [
           o2.parent.findChild({name:'labelName'})[0],
           o2.parent.findChild({name:'labelValue'})[0],
           o2.parent.findChild({name:'line1'})[0],
           o2.parent.findChild({name:'line2'})[0],
-          o2.parent.findChild({name:'boundingCircle'})[0]   
+          o2.parent.findChild({name:'boundingCircle'})[0],
+          o2.parent.findChild({name:'tangentLine'})[0]  
         ]
 
 
@@ -175,27 +181,56 @@ export default function SunburstChart(config) {
         line.y2 = y1  + normalize.y * 10 
 
 
+        // 将 line2 设置为 bounding 的水平线，起点 x 为 line1
         line2.x1 = line.x1
         line2.y1 = boundingCircle.y
         line2.x2 = boundingCircle.x - dir*boundingCircle.radius
         line2.y2 = boundingCircle.y
 
+        // line1 与 line2 进行相交处理
         let interactive = intersectionPoint([
           line,line2
         ])
 
-        if(interactive.intersectionExist){
+        // 有解
+        if(interactive.intersectionExist!==null){
+          // 与法线方向射线相交
           if(interactive.intersectionExist){
-
-            if( asin(line.dir.clone().cross(new Vec(1,0))) < .087){
+  
+            if( abs(
+              asin(line.dir.clone().cross(new Vec(1,0)))
+            ) < .087){
               line.x2 = line2.x1
               line.y2 = line2.y1
             }else{
               line.x2 = interactive.x
               line.y2 = interactive.y
-
+  
               line2.x1 = interactive.x
               line2.y1 = interactive.y
+            }
+          }else{
+            // 与法线方向反向相交
+            // 用 tangent 进行相交处理
+            let interactive = intersectionPoint([
+              tangentLine,line2
+            ])
+            
+            // 与 tangent 直线相交就行
+            if(interactive.intersectionExist!==null){
+
+              if( abs(
+                tangentLine.dir.clone().cross(new Vec(1,0))
+              ) < .087){
+                line.x2 = line2.x1
+                line.y2 = line2.y1
+              }else{
+                line.x2 = interactive.x
+                line.y2 = interactive.y
+    
+                line2.x1 = interactive.x
+                line2.y1 = interactive.y
+              }
             }
           }
         }
@@ -218,12 +253,13 @@ export default function SunburstChart(config) {
       }
 
       this._rings.forEach(o=>{
-        let [labelName,labelValue,line,line2,boundingCircle] = [
+        let [labelName,labelValue,line,line2,boundingCircle,tangentLine] = [
           o.findChild({name:'labelName'})[0],
           o.findChild({name:'labelValue'})[0],
           o.findChild({name:'line1'})[0],
           o.findChild({name:'line2'})[0],
-          o.findChild({name:'boundingCircle'})[0]
+          o.findChild({name:'boundingCircle'})[0],
+          o.findChild({name:'tangentLine'})[0]
         ]
 
         o.x = config.x
@@ -242,12 +278,17 @@ export default function SunburstChart(config) {
 
 
         if (o.depth === config.data.length-1) {
-            const { x: x1, y: y1, normalize } = o.getMiddleOfEdge();
+            const { x: x1, y: y1, normalize,tangent } = o.getMiddleOfEdge();
 
             line.x1 = x1
             line.y1 = y1
             line.x2 = x1  + normalize.x * 10 
             line.y2 = y1  + normalize.y * 10 
+
+            tangentLine.x1 = x1
+            tangentLine.y1 = y1
+            tangentLine.x2 = x1  + tangent.x * 20 
+            tangentLine.y2 = y1  + tangent.y * 20 
 
             const dir = sign(normalize.x);
             const labelNameWidth = labelName.getWidth()
@@ -290,8 +331,8 @@ export default function SunburstChart(config) {
       }
 
       config.line = {
+        color:'#e8e8e8',
         ...config.line,
-        color:'#e8e8e8'
       }
       
       config.x = this.resizeObserver ? config.$el.offsetWidth * 0.5 : config.x;
@@ -423,7 +464,19 @@ export default function SunburstChart(config) {
 
           if (ring.depth === processedData.length-1) {
 
-            const { x: x1, y: y1, normalize } = ring.getMiddleOfEdge();
+            const { x: x1, y: y1, normalize ,tangent} = ring.getMiddleOfEdge();
+
+            const tangentLine = Line({
+              x1,
+              y1,
+              x2:x1+tangent.x*20,
+              y2:y1+tangent.y*20
+            })
+            tangentLine.name = 'tangentLine'
+            tangentLine.z = Depth.line
+            // tangentLine.strokeStyle = 'blue'
+            tangentLine.strokeStyle = 'transparent'
+            ring.add(tangentLine)
 
             const line = Line({
               x1,
@@ -508,17 +561,21 @@ export default function SunburstChart(config) {
         }
       }
 
-      let currentClickElement = null
+      this.currentClickElement = null
+      this.currentMousemoveElement = null
+
       stage.getShapes().forEach((item,i) => {
         item.onClick(() => {
-          if(currentClickElement&&currentClickElement===item){
-            currentClickElement = null
+          if(this.currentClickElement&&this.currentClickElement===item){
+            this.currentClickElement = null
             this.handleElementCancel&&this.handleElementCancel(item)
             this._rings.forEach((n) => {
               n.globalAlpha = 1;
             });
           }else{
-            currentClickElement = item
+            this.currentClickElement = item
+
+           
 
             that.handleElementClick(item.userParams);
           }
@@ -539,19 +596,18 @@ export default function SunburstChart(config) {
           });
 
 
-          // item?.getLines?.(line=>{
-          //   line.strokeStyle = 'gray'
-          // })
-
-          if(currentClickElement){
-            currentClickElement.globalAlpha = 1
+          if(this.currentClickElement){
+            this.currentClickElement.globalAlpha = 1
           }
+
+
+          this.currentMousemoveElement = item
         });
 
         item.onMouseout(() => {
           this.$tooltip.style.display = 'none'
 
-          if(!currentClickElement){
+          if(!this.currentClickElement){
             this._rings.forEach((n) => {
               n.globalAlpha = 1;
             });
@@ -559,14 +615,12 @@ export default function SunburstChart(config) {
             this._rings.forEach((n) => {
               n.globalAlpha = .3;
             });
-            if(currentClickElement){
-              currentClickElement.globalAlpha = 1
+            if(this.currentClickElement){
+              this.currentClickElement.globalAlpha = 1
             }
           }
 
-          // item?.getLines?.(line=>{
-          //   line.strokeStyle =  config.line.color
-          // })
+          this.currentMousemoveElement = null
           
         });
       });
@@ -574,7 +628,7 @@ export default function SunburstChart(config) {
         this.$tooltip.style.display = 'none'
 
        
-        if(!currentClickElement){
+        if(!this.currentClickElement){
           this._rings.forEach((n) => {
             n.globalAlpha = 1;
           });
@@ -582,17 +636,12 @@ export default function SunburstChart(config) {
           this._rings.forEach((n) => {
             n.globalAlpha = .3;
           });
-          if(currentClickElement){
-            currentClickElement.globalAlpha = 1
+          if(this.currentClickElement){
+            this.currentClickElement.globalAlpha = 1
           }
         }
 
-        this._rings.forEach(item=>{
-          // item?.getLines?.(line=>{
-          //   line.strokeStyle =  config.line.color
-          // })
-
-        })
+        this.currentMousemoveElement = null
       });
     },
     onElementCancel(fn){
@@ -613,6 +662,24 @@ export default function SunburstChart(config) {
         stage.tick(() => {
           stage.update();
           this._handleCollision()
+
+          this._rings.forEach(ring=>{
+            ring?.getLines?.(line=>{
+              line.strokeStyle = config.line.color
+            })
+          })
+
+          if(this.currentMousemoveElement){
+            this.currentMousemoveElement?.getLines?.(line=>{
+              line.strokeStyle = 'gray'
+            })
+          }
+
+          // if(this.currentClickElement){
+          //   this.currentClickElement?.getLines?.(line=>{
+          //     line.strokeStyle = 'gray'
+          //   })
+          // }
         });
 
        

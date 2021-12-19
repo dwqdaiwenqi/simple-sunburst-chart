@@ -42,8 +42,12 @@ const Ring = ({
         y: sin(radian) * radius + this.y,
         normalize: {
           x: cos(radian),
-          y: sin(radian),
+          y: sin(radian)
         },
+        tangent:{
+          x: -sin(radian),
+          y: cos(radian),
+        }
       };
     },
     drawPath(c) {

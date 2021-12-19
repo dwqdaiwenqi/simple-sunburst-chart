@@ -12,15 +12,7 @@
   <script type="module">
     import Sunburst from '../src/index.js'
 
-    // let data = [
-    //   [{name:'2021年',value:100,meta:{name:'2012'}}],
-    //   [{name:'Q1',value:50,meta:{name:'q1'}},{name:'Q2',value:50,meta:{name:'q2'}},{name:'Q3',value:20,meta:{name:'q3'}},{name:'Q4',value:30,meta:{name:'q4'}}],
-    //   [
-    //     {name:'1月',value:19,meta:{name:'01'}},{name:'2月',value:15,meta:{name:'02'}},{name:'3月',value:10,meta:{name:'03'}},{name:'4月',value:10,meta:{name:'04'}},
-    //     {name:'5月',value:10,meta:{name:'05'}},{name:'6月',value:15,meta:{name:'06'}},{name:'7月',value:10,meta:{name:'07'}},{name:'8月',value:10,meta:{name:'08'}},
-    //     {name:'9月',value:10,meta:{name:'09'}},{name:'10月',value:15,meta:{name:'10'}},{name:'11月',value:10,meta:{name:'11'}},{name:'12月',value:1,meta:{name:'12'}}
-    //   ],
-    // ]
+
 
     let data = [[
       {"name":"2021年","value":1500723443434,"meta":{"type":"year","value":10214343,"title":"2021年","name":"2021年","format":"YYYY"}}
@@ -48,10 +40,6 @@
           {"type":"month","value":9,"name":"2021/10","format":"YYYY/MM","title":"2021/10月"}},
           {"name":"2021/11","value":1401,"meta":{"type":"month","value":10,"name":"2021/11","format":"YYYY/MM","title":"2021/11月"}}]]
 
-    // let data = [[{"meta":{"type":"year","name":"2021","title":"2021"},"name":"2021年","value":58}],[{"meta":{"type":"season","name":"2021/Q1","title":"2021/Q1"},"name":"Q1","value":10},{"meta":{"type":"season","name":"2021/Q2","title":"2021/Q2"},"name":"Q2","value":25},{"meta":{"type":"season","name":"2021/Q3","title":"2021/Q3"},"name":"Q3","value":12},{"meta":{"type":"season","name":"2021/Q4","title":"2021/Q4"},"name":"Q4","value":11}],[{"meta":{"type":"month","name":"2021/01","title":"2021/01"},"name":"1月","value":4},{"meta":{"type":"month","name":"2021/02","title":"2021/02"},"name":"2月","value":2},{"meta":{"type":"month","name":"2021/03","title":"2021/03"},"name":"3月","value":4},{"meta":{"type":"month","name":"2021/04","title":"2021/04"},"name":"4月","value":9},{"meta":{"type":"month","name":"2021/05","title":"2021/05"},"name":"5月","value":2},{"meta":{"type":"month","name":"2021/06","title":"2021/06"},"name":"6月","value":14},{"meta":{"type":"month","name":"2021/07","title":"2021/07"},"name":"7月","value":4},{"meta":{"type":"month","name":"2021/08","title":"2021/08"},"name":"8月","value":6},{"meta":{"type":"month","name":"2021/09","title":"2021/09"},"name":"9月","value":2},{"meta":{"type":"month","name":"2021/10","title":"2021/10"},"name":"10月","value":7},{"meta":{"type":"month","name":"2021/11","title":"2021/11"},"name":"11月","value":4},{"meta":{"type":"month","name":"2021/12","title":"2021/12"},"name":"12月","value":0}]]
-    
-
-    // let data = [[{"meta":{"type":"year","name":"2021","title":"2021年"},"name":"2021年","value":10355}],[{"meta":{"type":"season","name":"2021/Q1","title":"2021/Q1"},"name":"Q1","value":788},{"meta":{"type":"season","name":"2021/Q2","title":"2021/Q2"},"name":"Q2","value":2053},{"meta":{"type":"season","name":"2021/Q3","title":"2021/Q3"},"name":"Q3","value":1511},{"meta":{"type":"season","name":"2021/Q4","title":"2021/Q4"},"name":"Q4","value":6003}],[{"meta":{"type":"month","name":"2021/01","title":"2021/1月"},"name":"1月","value":64},{"meta":{"type":"month","name":"2021/02","title":"2021/2月"},"name":"2月","value":471},{"meta":{"type":"month","name":"2021/03","title":"2021/3月"},"name":"3月","value":253},{"meta":{"type":"month","name":"2021/04","title":"2021/4月"},"name":"4月","value":392},{"meta":{"type":"month","name":"2021/05","title":"2021/5月"},"name":"5月","value":858},{"meta":{"type":"month","name":"2021/06","title":"2021/6月"},"name":"6月","value":803},{"meta":{"type":"month","name":"2021/07","title":"2021/7月"},"name":"7月","value":753},{"meta":{"type":"month","name":"2021/08","title":"2021/8月"},"name":"8月","value":285},{"meta":{"type":"month","name":"2021/09","title":"2021/9月"},"name":"9月","value":473},{"meta":{"type":"month","name":"2021/10","title":"2021/10月"},"name":"10月","value":32},{"meta":{"type":"month","name":"2021/11","title":"2021/11月"},"name":"11月","value":3235},{"meta":{"type":"month","name":"2021/12","title":"2021/12月"},"name":"12月","value":2736}]]
 
     let data2 = [[],[],[]]
     let chart
@@ -76,6 +64,9 @@
           size:16,
           x:0,
           y:20,
+        },
+        line:{
+          // color:'black'
         },
         tooltip: (param) => {
           const wapSty = 'display:flex;align-items:center;'

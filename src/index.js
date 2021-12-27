@@ -31,9 +31,9 @@ const processData = ({ data, min }) => {
     const maxItem = [...innerArr].sort((a,b)=>b.rad-a.rad)?.[0]
 
     let diff = innerArr.reduce((preVal,curItem)=>{
-      if(curItem.rad < .05){
-        preVal += (.05 - curItem.rad)
-        curItem.rad = .05
+      if(curItem.rad < min){
+        preVal += (min - curItem.rad)
+        curItem.rad = min
       }
       return preVal
     },0)
@@ -338,7 +338,7 @@ export default function SunburstChart(config) {
       config.x = this.resizeObserver ? config.$el.offsetWidth * 0.5 : config.x;
       config.y = this.resizeObserver ? config.$el.offsetHeight * 0.5 : config.y;
       config.gap = config.gap ?? 0;
-      config.min = config.min ?? 0.01;
+      config.min = config.min ?? 0.05;
       config.levels = config.levels ?? [];
       config.labelMode = config.labelMode ?? 'space-between';
       config.radius = this.resizeObserver ? config.$el.offsetHeight * 0.3 : config.radius;
@@ -381,10 +381,8 @@ export default function SunburstChart(config) {
       overlapCircle.name = 'overlapCircle'
       overlapCircle.globalAlpha = 1
 
-      const processedData = processData({ data, min: 0 });
+      const processedData = processData({ data, min: config.min });
 
-
-      
       const stepRadius = config.radius / processedData.length;
       
       for (let i = 0, len = processedData.length; i < len; i++) {

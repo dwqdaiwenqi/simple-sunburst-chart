@@ -12,8 +12,6 @@
   <script type="module">
     import Sunburst from '../src/index.js'
 
-
-
     let data = [[
       {"name":"2021年","value":1500723443434,"meta":{"type":"year","value":10214343,"title":"2021年","name":"2021年","format":"YYYY"}}
     ],
@@ -55,9 +53,9 @@
         $el: document.querySelector('#place'),
         gap: 3,
         levels: [
-          { color: '#536686',font:{ shadowOffsetX:1,shadowOffsetY:1,shadowBlur:2,shadowColor:'rgba(0,0,0,.8)' } },
-          { color: '#5284f5',font:{ shadowOffsetX:1,shadowOffsetY:1,shadowBlur:2,shadowColor:'rgba(0,0,0,.8)'  }},
-          { color: '#b5cbfd' ,font:{ tx:0,mode:'break-world'}},
+          { radius:.35, color: '#536686',font:{ shadowOffsetX:1,shadowOffsetY:1,shadowBlur:2,shadowColor:'rgba(0,0,0,.8)' } },
+          { radius:.8, color: '#5284f5',font:{ shadowOffsetX:1,shadowOffsetY:1,shadowBlur:2,shadowColor:'rgba(0,0,0,.8)'  }},
+          { radius:1, color: '#b5cbfd' ,font:{ tx:0,mode:'break-world'}},
         ],
         title:{
           text:'图表title',
@@ -65,6 +63,7 @@
           x:0,
           y:20,
         },
+        // effect:'toggleElement',
         line:{
           // color:'black'
         },

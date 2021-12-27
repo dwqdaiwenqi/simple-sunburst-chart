@@ -199,7 +199,7 @@ export default function SunburstChart(config) {
   
             if( abs(
               asin(line.dir.clone().cross(new Vec(1,0)))
-            ) < .087){
+            ) < .1){
               line.x2 = line2.x1
               line.y2 = line2.y1
             }else{
@@ -219,19 +219,24 @@ export default function SunburstChart(config) {
             // 与 tangent 直线相交就行
             if(interactive.intersectionExist!==null){
 
-              if( abs(
-                tangentLine.dir.clone().cross(new Vec(1,0))
-              ) < .087){
-                line.x2 = line2.x1
-                line.y2 = line2.y1
-              }else{
-                line.x2 = interactive.x
-                line.y2 = interactive.y
-    
-                line2.x1 = interactive.x
-                line2.y1 = interactive.y
+              if(tangentLine.dir.x>0 && interactive.x > line.x2 ){
+                interactive.x = line.x2
+                interactive.y = line.y2
               }
-            }
+
+              if(tangentLine.dir.x<0 && interactive.x <  line.x2 ){
+                interactive.x = line.x2
+                interactive.y = line.y2
+              }
+
+              line.x2 = interactive.x
+              line.y2 = interactive.y
+
+  
+              line2.x1 = interactive.x
+              line2.y1 = interactive.y
+            
+          }
           }
         }
       })
@@ -270,7 +275,7 @@ export default function SunburstChart(config) {
 
         if (o.depth !==config.data.length-1) {
           labelName.x = x
-          labelName.y = y
+          labelName.y = y - 10
 
           labelValue.x = labelName.x
           labelValue.y = labelName.y + 18
@@ -314,7 +319,6 @@ export default function SunburstChart(config) {
 
             labelValue.x = labelName.x 
             labelValue.y = labelName.y + 16
-
 
             boundingCircle.x = labelName.x
             boundingCircle.y = labelName.y+5
@@ -383,15 +387,23 @@ export default function SunburstChart(config) {
 
       const processedData = processData({ data, min: config.min });
 
-      const stepRadius = config.radius / processedData.length;
+      const radius = config.levels.map((item,i)=>{
+        return item.radius ??  (i + 1) / config.levels.length
+      })
+
+      const eachRadiusConf = radius.map((val,i)=>{
+        if(i===0) return {ir:0,or:val}
+        return {ir:radius[i-1],or:val} 
+      })
       
       for (let i = 0, len = processedData.length; i < len; i++) {
         const children = processedData[i];
-        const radius = (i / len) * config.radius;
+        const radiusConf = eachRadiusConf[i]
 
-        const levelConfig =  config.levels?.[i]
-        const font = Object.assign({tx:0,ty:0,font:'13px Regular',mode:'break-world'},levelConfig.font ??{})
-        const co = levelConfig?.color;
+        const levelConf =  config.levels?.[i]
+        
+        const font = Object.assign({tx:0,ty:0,font:'13px Regular',mode:'break-world'},levelConf.font ??{})
+        const co = levelConf?.color;
 
         const depthChilds = [];
         for (let j = 0, len = children.length; j < len; j++) {
@@ -412,8 +424,8 @@ export default function SunburstChart(config) {
           }
 
           const ring = Ring({
-            innerRadius: radius,
-            outerRadius: radius + stepRadius,
+            innerRadius: radiusConf.ir * config.radius,
+            outerRadius: radiusConf.or * config.radius,
             startRadian,
             endRadian,
           });
@@ -441,18 +453,17 @@ export default function SunburstChart(config) {
             const { x, y } = ring.getCenterPo();
             ring.add(textName);
             textName.x = x + font.tx
-            textName.y = y + font.ty
+            textName.y = y + font.ty - 10
             textName.font = font.font
             textName.z = Depth.text
             textName.name = 'labelName'
             const textValue = Text({ text: childData.value });
             ring.add(textValue);
             textValue.font = font.font
-            textValue.x = x + font.tx
-            textValue.y = y + 18+ font.ty
+            textValue.x = textName.x + font.tx
+            textValue.y = textName.y + 18+font.ty
             textValue.z = Depth.text
             textValue.name = 'labelValue'
-
 
             textName.shadowBlur = textValue.shadowBlur = font.shadowBlur
             textName.shadowOffsetX = textValue.shadowOffsetX = font.shadowOffsetX
@@ -564,17 +575,20 @@ export default function SunburstChart(config) {
 
       stage.getShapes().forEach((item,i) => {
         item.onClick(() => {
-          if(this.currentClickElement&&this.currentClickElement===item){
-            this.currentClickElement = null
-            this.handleElementCancel&&this.handleElementCancel(item)
-            this._rings.forEach((n) => {
-              n.globalAlpha = 1;
-            });
+         
+          if(config.effect==='toggleElement'){
+            if(this.currentClickElement&&this.currentClickElement===item){
+              this.currentClickElement = null
+              this.handleElementCancel&&this.handleElementCancel(item)
+              this._rings.forEach((n) => {
+                n.globalAlpha = 1;
+              });
+            }else{
+              this.currentClickElement = item
+              that.handleElementClick(item.userParams);
+            }
           }else{
             this.currentClickElement = item
-
-           
-
             that.handleElementClick(item.userParams);
           }
 
@@ -593,11 +607,11 @@ export default function SunburstChart(config) {
             n.globalAlpha = n === item ? 1 : 0.3;
           });
 
-
-          if(this.currentClickElement){
-            this.currentClickElement.globalAlpha = 1
+          if(config.effect==='toggleElement'){
+            if(this.currentClickElement){
+              this.currentClickElement.globalAlpha = 1
+            }
           }
-
 
           this.currentMousemoveElement = item
         });
@@ -605,18 +619,28 @@ export default function SunburstChart(config) {
         item.onMouseout(() => {
           this.$tooltip.style.display = 'none'
 
-          if(!this.currentClickElement){
+          if(config.effect==='toggleElement'){
+            if(!this.currentClickElement){
+              this._rings.forEach((n) => {
+                n.globalAlpha = 1;
+              });
+            }else{
+              this._rings.forEach((n) => {
+                n.globalAlpha = .3;
+              });
+  
+              if(this.currentClickElement){
+                this.currentClickElement.globalAlpha = 1
+              }
+
+            }
+
+          }else{
             this._rings.forEach((n) => {
               n.globalAlpha = 1;
             });
-          }else{
-            this._rings.forEach((n) => {
-              n.globalAlpha = .3;
-            });
-            if(this.currentClickElement){
-              this.currentClickElement.globalAlpha = 1
-            }
           }
+
 
           this.currentMousemoveElement = null
           
@@ -625,19 +649,28 @@ export default function SunburstChart(config) {
       stage.onMouseout(() => {
         this.$tooltip.style.display = 'none'
 
-       
-        if(!this.currentClickElement){
+        if(config.effect==='toggleElement'){
+          if(!this.currentClickElement){
+            this._rings.forEach((n) => {
+              n.globalAlpha = 1;
+            });
+          }else{
+            this._rings.forEach((n) => {
+              n.globalAlpha = .3;
+            });
+  
+            if(this.currentClickElement){
+              this.currentClickElement.globalAlpha = 1
+            }
+  
+          }
+
+        }else{
           this._rings.forEach((n) => {
             n.globalAlpha = 1;
           });
-        }else{
-          this._rings.forEach((n) => {
-            n.globalAlpha = .3;
-          });
-          if(this.currentClickElement){
-            this.currentClickElement.globalAlpha = 1
-          }
         }
+        
 
         this.currentMousemoveElement = null
       });

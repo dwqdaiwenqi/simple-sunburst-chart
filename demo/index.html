@@ -63,7 +63,7 @@
           x:0,
           y:20,
         },
-        // effect:'toggleElement',
+        effect:'toggleElement',
         line:{
           // color:'black'
         },
@@ -85,12 +85,12 @@
   
       // chart.autoResize();
       chart.onElementClick((params) => {
-        console.log(params.meta)
+        console.log('click:',params.meta)
         // alert(params.name)
       });
 
       chart.onElementCancel(item=>{
-        console.log('item',item)
+        console.log('cancel item:',item)
       })
     }
 

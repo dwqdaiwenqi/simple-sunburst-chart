@@ -83,7 +83,8 @@ const Depth = {
   // line:10,
   overlap:2,
   ring:3,
-  text:4
+  presentRing:4,
+  text:6
 }
 
 
@@ -573,24 +574,56 @@ export default function SunburstChart(config) {
       this.currentClickElement = null
       this.currentMousemoveElement = null
 
+
       stage.getShapes().forEach((item,i) => {
         item.onClick(() => {
          
           if(config.effect==='toggleElement'){
+
+            // 点过了，又点击了自身
             if(this.currentClickElement&&this.currentClickElement===item){
-              this.currentClickElement = null
-              this.handleElementCancel&&this.handleElementCancel(item)
+
               this._rings.forEach((n) => {
                 n.globalAlpha = 1;
+                n.strokeStyle = 'white'
+                n.z = Depth.ring
               });
+
+              this.currentClickElement = null
+              this.handleElementCancel&&this.handleElementCancel(item)
+
+            // 点过了，没点自己
+            }else if(this.currentClickElement){
+
+              this.currentClickElement.strokeStyle = 'white'
+              this.currentClickElement.z = Depth.ring
+              this.currentClickElement.globalAlpha = .3
+
+
+              item.strokeStyle = 'black'
+              item.z = Depth.presentRing
+
+
+              this.currentClickElement = item
+              that.handleElementClick(item.userParams);
+            
+            // 没点过
             }else{
+              item.strokeStyle = 'black'
+              item.z = Depth.presentRing
+              item.globalAlpha = 1
+
               this.currentClickElement = item
               that.handleElementClick(item.userParams);
             }
+
+
+          // 没点过
           }else{
             this.currentClickElement = item
             that.handleElementClick(item.userParams);
           }
+
 
         });
 
@@ -604,7 +637,8 @@ export default function SunburstChart(config) {
           }
 
           this._rings.forEach((n) => {
-            n.globalAlpha = n === item ? 1 : 0.3;
+            n.globalAlpha = n === item ? 1 :  .3;
+
           });
 
           if(config.effect==='toggleElement'){
@@ -620,17 +654,22 @@ export default function SunburstChart(config) {
           this.$tooltip.style.display = 'none'
 
           if(config.effect==='toggleElement'){
+
             if(!this.currentClickElement){
               this._rings.forEach((n) => {
                 n.globalAlpha = 1;
+                n.strokeStyle = 'white'
+                n.z = Depth.ring
               });
             }else{
               this._rings.forEach((n) => {
-                n.globalAlpha = .3;
+                n.globalAlpha =  .3;
               });
   
               if(this.currentClickElement){
                 this.currentClickElement.globalAlpha = 1
+                this.currentClickElement.strokeStyle = 'black'
+                this.currentClickElement.z = Depth.presentRing
               }
 
             }
@@ -656,13 +695,12 @@ export default function SunburstChart(config) {
             });
           }else{
             this._rings.forEach((n) => {
-              n.globalAlpha = .3;
+              n.globalAlpha =  .3
             });
   
             if(this.currentClickElement){
               this.currentClickElement.globalAlpha = 1
             }
-  
           }
 
         }else{
@@ -706,11 +744,6 @@ export default function SunburstChart(config) {
             })
           }
 
-          // if(this.currentClickElement){
-          //   this.currentClickElement?.getLines?.(line=>{
-          //     line.strokeStyle = 'gray'
-          //   })
-          // }
         });
 
        

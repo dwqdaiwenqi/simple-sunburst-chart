@@ -26,12 +26,14 @@ declare function SunburstChart<T extends IData>(config: Partial<{
     size:number
     x:number
     y:number
+    color:string
   }>,
   processLine:(
     userParams:IData & Record<string,any>,
     axis: IVec,
     rt:(vec: IVec,rad:number)=> IVec)
   =>{axis: IVec,length:number}
+  effect?:'toggleElement'
 }>): ISunburstInstance;
 
 export default SunburstChart;

@@ -7,7 +7,6 @@ const intersectionPoint = (e) => {
   // e[0].dir.x * t1 - e[1].dir.x * t2 = e[1].x1 - e[0].x1;
   // e[0].dir.y * t1 - e[1].dir.y * t2 = e[1].y1 - e[0].y1;
 
-  //
   //  a b          t1          e
   //  c d          t2          f
   let mat = {

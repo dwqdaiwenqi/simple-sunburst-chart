@@ -330,6 +330,7 @@ export default function SunburstChart(config) {
 
     },
     updateData(data){
+
       config.title = {
         ...{text:'',x:0,y:20,size:16,color:'rgba(0,0,0,0.65)'},
         ...config.title,
@@ -398,6 +399,9 @@ export default function SunburstChart(config) {
       })
       
       for (let i = 0, len = processedData.length; i < len; i++) {
+
+        // if(i!==2) continue;
+
         const children = processedData[i];
         const radiusConf = eachRadiusConf[i]
 
@@ -407,7 +411,11 @@ export default function SunburstChart(config) {
         const co = levelConf?.color;
 
         const depthChilds = [];
+
+
         for (let j = 0, len = children.length; j < len; j++) {
+
+          // if(j!==0) continue
           
           const childData = children[j];
 
@@ -430,7 +438,10 @@ export default function SunburstChart(config) {
             startRadian,
             endRadian,
           });
+
           this._rings.push(ring)
+          ring.name = 'ring'+j
+          
           ring.x = config.x;
           ring.y = config.y;
           ring.z = Depth.ring
@@ -440,6 +451,8 @@ export default function SunburstChart(config) {
           ring.globalAlpha = 1;
           ring.userParams = { ...childData,color:co };
           ring.depth = i
+        
+          
 
           ring.getLines = (fn)=>{
 
@@ -451,7 +464,9 @@ export default function SunburstChart(config) {
 
           if (ring.depth !== processedData.length-1) {
             const textName = Text({ text: childData.name });
-            const { x, y } = ring.getCenterPo();
+
+            const {x,y} = ring.p4
+
             ring.add(textName);
             textName.x = x + font.tx
             textName.y = y + font.ty - 10
@@ -488,19 +503,24 @@ export default function SunburstChart(config) {
             tangentLine.strokeStyle = 'transparent'
             ring.add(tangentLine)
 
+
+            const offset = 10
+            const linePos1 = ring.po.add(ring.normal.multiplyScalar(ring.outerRadius))
+            const linePos2 = ring.po.add(ring.normal.multiplyScalar(ring.outerRadius+offset))
+
             const line = Line({
-              x1,
-              y1,
-              x2: x1 + normalize.x * 10,
-              y2: y1 + normalize.y * 10,
+              x1: linePos1.x,
+              y1: linePos1.y,
+              x2: linePos2.x,
+              y2: linePos2.y,
             });
+
             line.name = 'line1'
             line.z = Depth.line
             ring.add(line);
             line.strokeStyle = config.line.color
 
-
-            const dir = sign(normalize.x);
+            const dir = sign(ring.normal.x);
 
             const targetX =
             dir > 0
@@ -554,7 +574,7 @@ export default function SunburstChart(config) {
             boundingCircle.name = 'boundingCircle'
             boundingCircle.attrName = 'boundingCircle-'+childData.name
             boundingCircle.fillStyle = 'transparent'
-            // boundingCircle.strokeStyle = 'aqua'
+            boundingCircle.strokeStyle = 'transparent'
             ring.add(boundingCircle)
             ring.boundingCircle = boundingCircle
 
@@ -566,6 +586,12 @@ export default function SunburstChart(config) {
           }
 
           depthChilds.push(ring);
+
+          // const renderIdx = [0] 
+          // if(renderIdx.includes(j)){
+          //   stage.add(ring);
+          // }
+
 
           stage.add(ring);
         }

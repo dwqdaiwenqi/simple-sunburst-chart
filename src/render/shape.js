@@ -15,8 +15,9 @@ const Shape = () => {
       this.mouseoutHandle = fuc;
     },
     inPath(x, y) {
-      this.drawPath(this.c);
-      return this.c.isPointInPath(x, y);
+      // this.drawPath(this.c);
+      // return this.c.isPointInPath(x, y);
+      return false
     },
     update(c) {
       c.save()

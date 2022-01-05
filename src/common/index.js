@@ -14,14 +14,18 @@ const debounce = (fn, t = 233) => {
   };
 };
 
+const dpr = window.devicePixelRatio || 1
+
 export {
   sin, cos, sign, abs,PI,asin,
   l,
-  debounce
+  debounce,
+  dpr
 }
 
 export default {
   sin, cos, sign, asin,abs,PI,
   l,
-  debounce
+  debounce,
+  dpr
 }

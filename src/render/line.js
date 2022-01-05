@@ -17,7 +17,12 @@ const Line = ({
       Object.defineProperties(this,{
         dir:{
           get(){
-            return new Vector(this.x2-this.x1,this.y2-this.y1).normalize()
+            return new Vector(this.x2-this.x1,this.y2-this.y1)
+          }
+        },
+        length:{
+          get(){
+            return this.dir.length()
           }
         }
       })

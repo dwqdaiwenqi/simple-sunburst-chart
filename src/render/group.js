@@ -10,6 +10,9 @@ const Group = ()=>{
       element.parent = this
       this.elements.push(element)
     },
+    remove(){
+
+    },
     findChild({name}={}){
       return this.elements.filter(n=>n.name===name)
     }

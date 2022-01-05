@@ -4,8 +4,8 @@
 /* eslint-disable operator-assignment */
 
 import Group from './group.js'
-
-const dpr = window.devicePixelRatio || 1
+import M2 from '../common/matrix2d.js'
+import {dpr} from '../common/index.js'
 
 const Stage = (w, h, $el) => {
   const that = Group()
@@ -22,6 +22,8 @@ const Stage = (w, h, $el) => {
       $el.appendChild($c);
 
       this.registryEvents();
+      
+      this.mat = new M2().scaling(dpr)
 
       return this;
     },
@@ -78,6 +80,7 @@ const Stage = (w, h, $el) => {
         const shapes = this.getShapes((n)=>n.visible);
         shapes.forEach((item) => {
           if (item.inPath(x, y)) {
+            console.log('item:',item,x,y)
             item?.clickHandle?.(x, y);
           }
         });
@@ -156,7 +159,7 @@ const Stage = (w, h, $el) => {
     },
     update() {
       this.c.save()
-      this.c.scale(dpr,dpr)
+      this.c.setTransform(...this.mat.elements)
       let elements = this.elements.reduce((preVal,curVal)=>{
         preVal.push(...curVal.elements,...[curVal])
         return preVal

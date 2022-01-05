@@ -90,8 +90,6 @@
 // })
 
 
-
-
 ///////////////
 import Vec2 from './vector.js'
 import intersectionPoint from './intersectionPoint.js';
@@ -102,7 +100,8 @@ class Ring {
     innerRadius,
     outerRadius,
     startRadian,
-    endRadian
+    endRadian,
+    color='black'
   }){
     this.innerRadius = innerRadius;
     this.outerRadius = outerRadius;
@@ -110,6 +109,7 @@ class Ring {
     this.endRadian = endRadian;
     this.x = 0
     this.y = 0
+    this.color = color
 
     Object.defineProperties(this,{
       po:{
@@ -117,34 +117,39 @@ class Ring {
           return new Vec2(this.x,this.y)
         }
       },
-      pu1:{
+      edge1:{
         get(){
           return new Vec2(cos(this.startRadian),sin(this.startRadian))
         }
       },
-      pu2:{
+      edge2:{
         get(){
           return new Vec2(cos(this.endRadian),sin(this.endRadian))
         }
       },
+      normal:{
+        get(){
+          return new Vec2().lerpVectors(this.edge1,this.edge2,.5)
+        }
+      },
       p0:{
         get(){
-          return this.po.add((this.pu1.multiplyScalar(this.innerRadius)))
+          return this.po.add((this.edge1.multiplyScalar(this.innerRadius)))
         }
       },
       p1:{
         get(){
-          return this.po.add(this.pu1.multiplyScalar(this.outerRadius))
+          return this.po.add(this.edge1.multiplyScalar(this.outerRadius))
         }
       },
       p2:{
         get(){
-          return this.po.add(this.pu2.multiplyScalar(this.outerRadius))
+          return this.po.add(this.edge2.multiplyScalar(this.outerRadius))
         }
       },
       p3:{
         get(){
-          return this.po.add(this.pu2.multiplyScalar(this.innerRadius))
+          return this.po.add(this.edge2.multiplyScalar(this.innerRadius))
         }
       },
       // helpAxis:{
@@ -168,6 +173,7 @@ class Ring {
 
     c.save()
 
+    c.strokeStyle = this.color;
     c.beginPath();
 
     // c.moveTo(cos(sr) * ir + cx, sin(sr) * ir + cy);
@@ -251,7 +257,8 @@ let interactiveDot = new Ring({
   innerRadius:0,
   outerRadius:5,
   startRadian:0,
-  endRadian:2*Math.PI
+  endRadian:2*Math.PI,
+  color:'red'
 })
 interactiveDot.x = 0
 interactiveDot.y = 0
@@ -259,7 +266,7 @@ interactiveDot.y = 0
 let ring = new Ring({
   innerRadius:30,
   outerRadius:80,
-  startRadian:0,
+  startRadian:.3,
   endRadian:Math.PI*.6
 })
 ring.x = 150
@@ -274,6 +281,55 @@ ring.helpAxis = Line({
 
 let line1 = Line({x1:0,y1:0,x2:0,y2:0})
 
+
+
+// this.x = v1.x + (v2.x - v1.x) * alpha;
+//     this.y = v1.y + (v2.y - v1.y) * alpha;
+
+
+
+// let p1 = ring.po.add(ring.edge1.multiplyScalar(ring.outerRadius))
+// let p2 = ring.po.add(ring.edge1.multiplyScalar(ring.outerRadius+50))
+
+
+
+
+let lines = []
+
+for(let i = 0;i<1;i++){
+  // const alpha = i/(20-1)
+  // let v= {
+  //   x:ring.edge1.x + (ring.edge2.x-ring.edge1.x)*alpha,
+  //   y:ring.edge1.y + (ring.edge2.y-ring.edge1.y)*alpha
+  // }
+  // let p1 = {
+  //   x:ring.x+v.x*ring.outerRadius,
+  //   y:ring.y+v.y*ring.outerRadius,
+  // }
+  // let p2 = {
+  //   x:ring.x+v.x*(ring.outerRadius+70),
+  //   y:ring.y+v.y*(ring.outerRadius+70),
+  // }
+  
+  let p1 = 
+    ring.edge1.clone().rotateAround(new Vec2(0,0),(ring.endRadian-ring.startRadian)*.5)
+
+  console.log(p1)
+  let lineCenter = Line({
+    x1:ring.x+ p1.x*ring.outerRadius,
+    y1:ring.y+ p1.y*ring.outerRadius,
+    x2:ring.x+ p1.x*(ring.outerRadius+50),
+    y2:ring.y+ p1.y*(ring.outerRadius+50)
+  })
+  lineCenter.strokeStyle = 'blue'
+  
+  
+  
+  lines.push(lineCenter)
+
+}
+
+
 let render = ()=>{
   // rects.forEach(o=>{
   //   o.render(c)
@@ -286,6 +342,11 @@ let render = ()=>{
 
   line1.render(c)
 
+
+  lines.forEach(l=>{
+    l.render(c)
+  })
+
   ring.helpAxis.render(c)
 
   interactiveDot.render(c)
@@ -294,6 +355,9 @@ let render = ()=>{
 render()
 
 let i = 0
+
+
+
 
 $c.onmousemove = (e)=>{
 
@@ -317,19 +381,15 @@ $c.onmousemove = (e)=>{
     if(Math.abs(ring.endRadian-ring.startRadian)>Math.PI){
       if(interactive.intersectionExist){
         if(interactive.t1>=0&&interactive.t1<=1){
+
         }else{
-          document.querySelector('#log-placeholder').textContent = '钝角:'+(i++)
+          
         }
-      }else{
-        // console.log('钝角...')
       }
     }else{
       if(interactive.intersectionExist){
         if(interactive.t1>=0&&interactive.t1<=1){
-          interactiveDot.x = interactive.x
-          interactiveDot.y = interactive.y
-          // console.log('锐角 interactive:',interactive)
-          document.querySelector('#log-placeholder').textContent = '锐角:'+(i++)
+         
         }
       }
     }

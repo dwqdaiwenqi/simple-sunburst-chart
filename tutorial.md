@@ -4,6 +4,8 @@
 图表在前端开发中是见怪不怪了，常用的图表有：柱状图、饼图、折线图、面积图、雷达图，等等... 其中大部分的图表我们用业界常用的图表库（echarts、g2）通过一些配置项都能满足需求。但总有一些比较冷门的图表，再在基础上增加一些神奇的自定义交互与视觉，通过配置项**已经无法实现**了，如下:
 
 
+<img src="https://latex.codecogs.com/svg.image?\vec{a}" title="\vec{a}" />
+
 $\vec{a}$
 ![preview2.png](https://p1-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/ab0e370034b84b51bc2bbb1e2ce9a90c~tplv-k3u1fbpfcp-watermark.image?)
 
